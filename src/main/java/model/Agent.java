@@ -52,11 +52,11 @@ public class Agent extends Thread {
     }
 
     protected void Compute() {
-        //
+        //TODO
     }
 
     @Override
     public void run() {
-        //
+        //TODO
     }
 }
