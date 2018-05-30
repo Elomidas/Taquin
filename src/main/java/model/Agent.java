@@ -2,7 +2,7 @@ package model;
 
 import model.moves.MoveStrategy;
 
-public class Agent {
+public class Agent extends Thread {
     private Position position;
     private Position target;
     private int id;
@@ -27,7 +27,7 @@ public class Agent {
         strategy = null;
     }
 
-    public int getId() {
+    public int getAgentId() {
         return id;
     }
 
@@ -49,5 +49,14 @@ public class Agent {
 
     protected boolean move() {
         return strategy != null && strategy.move(this);
+    }
+
+    protected void Compute() {
+        //
+    }
+
+    @Override
+    public void run() {
+        //
     }
 }

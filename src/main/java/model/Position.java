@@ -2,7 +2,7 @@ package model;
 
 import java.util.Objects;
 
-public class Position extends Thread {
+public class Position {
 
     private int px, py;
 
@@ -29,10 +29,6 @@ public class Position extends Thread {
     public void setPos(int x, int y) {
         setX(x);
         setY(y);
-    }
-
-    protected void Compute() {
-        //TODO
     }
 
     @Override
