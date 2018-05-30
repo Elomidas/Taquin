@@ -7,6 +7,7 @@ public class Agent {
 
     private static int _id = 0;
     private static Plateau _plateau;
+    private static Messages _messages = new Messages();
 
     static public void setPlateau(Plateau p) {
         _plateau = p;
@@ -26,6 +27,8 @@ public class Agent {
     public int getId() {
         return id;
     }
+
+    public Messages getMessages(){ return _messages; }
 
     public Position getPosition() {
         return position;
