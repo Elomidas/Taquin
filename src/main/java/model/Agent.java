@@ -1,6 +1,9 @@
 package model;
 
-import model.moves.MoveStrategy;
+import model.moves.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Agent extends Thread {
     private Position position;
@@ -10,7 +13,13 @@ public class Agent extends Thread {
 
     private static int _id = 0;
     private static Plateau _plateau;
-    private static Messages _messages = new Messages();
+    private static Messages _messages;
+
+    public final static int _up = 1,
+                            _down = 2,
+                            _left = 3,
+                            _right = 4,
+                            _none = 0;
 
     static public void setPlateau(Plateau p) {
         _plateau = p;
@@ -61,5 +70,13 @@ public class Agent extends Thread {
     @Override
     public void run() {
         //TODO
+    }
+
+    public List<Integer> FindBestPath(){
+        List<Integer> res = new ArrayList<>();
+
+
+
+        return res;
     }
 }
