@@ -1,6 +1,9 @@
 package model;
 
-import model.moves.MoveStrategy;
+import model.moves.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Agent extends Thread {
     private Position position;
@@ -9,6 +12,13 @@ public class Agent extends Thread {
     private MoveStrategy strategy;
 
     private static int _id = 0;
+    private static Messages _messages;
+
+    private final static int _up = 1,
+                            _down = 2,
+                            _left = 3,
+                            _right = 4,
+                            _none = 0;
     private static Board _board;
 
     /**
@@ -103,5 +113,13 @@ public class Agent extends Thread {
      */
     public boolean goodPosition() {
         return position.equals(target);
+    }
+
+    public List<Integer> FindBestPath(){
+        List<Integer> res = new ArrayList<>();
+
+
+
+        return res;
     }
 }
