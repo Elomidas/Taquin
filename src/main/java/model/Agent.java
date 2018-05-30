@@ -35,7 +35,7 @@ public class Agent extends Thread {
         return position;
     }
 
-    public void Message(int targetId, String perform, String action, Position toFree) {
+    public void Message(int targetId, Message.performs perform, Message.actions action, Position toFree) {
         //TODO
     }
 
