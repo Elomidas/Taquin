@@ -1,7 +1,7 @@
 package model;
 
 public class Message {
-    enum performs{request}
+    enum performs{request, response}
     enum actions{move}
 
     private int sender;
@@ -18,7 +18,7 @@ public class Message {
         toFree = pos;
     }
 
-    public int getReciever() {
+    public int getReceiver() {
         return reciever;
     }
 }
