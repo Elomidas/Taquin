@@ -9,14 +9,14 @@ public class Agent extends Thread {
     private MoveStrategy strategy;
 
     private static int _id = 0;
-    private static Board _plateau;
+    private static Board _board;
 
     /**
      * Set the board to watch
      * @param p board to watch
      */
     static public void setPlateau(Board p) {
-        _plateau = p;
+        _board = p;
     }
 
     /**
@@ -24,7 +24,7 @@ public class Agent extends Thread {
      * @return the board to watch
      */
     static public Board getPlateau() {
-        return _plateau;
+        return _board;
     }
 
     /**
@@ -85,7 +85,7 @@ public class Agent extends Thread {
 
     @Override
     public void run() {
-        while(!_plateau.finish()) {
+        while(!_board.finish()) {
             //TODO
             if(goodPosition()) {
                 //TODO
