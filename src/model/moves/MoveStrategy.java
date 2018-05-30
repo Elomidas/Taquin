@@ -5,6 +5,10 @@ import model.Position;
 
 public class MoveStrategy {
     private int horizontally, vertically;
+    public final static MoveStrategy _up = new MoveStrategy(0, 1),
+                                    _down = new MoveStrategy(0, -1),
+                                    _left = new MoveStrategy(-1, 0),
+                                    _right = new MoveStrategy(1, 0);
 
     /**
      * Move strategy
