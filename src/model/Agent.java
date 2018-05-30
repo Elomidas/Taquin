@@ -6,6 +6,15 @@ public class Agent {
     private int id;
 
     private static int _id = 0;
+    private static Plateau _plateau;
+
+    static public void setPlateau(Plateau p) {
+        _plateau = p;
+    }
+
+    static public Plateau getPlateau() {
+        return _plateau;
+    }
 
     public Agent(Position pos, Position targ) {
         position = pos;
@@ -24,5 +33,9 @@ public class Agent {
 
     public void Message(int targetId, String perform, String action, Position toFree) {
         //TODO
+    }
+
+    public void setPosition(Position pos) {
+        position = pos;
     }
 }

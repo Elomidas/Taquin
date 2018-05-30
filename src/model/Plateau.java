@@ -37,4 +37,13 @@ public class Plateau {
                 && pos.getY() >= 0
                 && pos.getY() < high;
     }
+
+    public boolean isFree(Position position) {
+        for(Agent a : agents) {
+            if(a.getPosition() == position) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
