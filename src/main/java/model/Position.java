@@ -42,9 +42,7 @@ public class Position {
         final Position pos = (Position) obj;
         if(pos.getX() != this.getX())
             return false;
-        if(pos.getY() != this.getY())
-            return false;
-        return true;
+        return pos.getY() == this.getY();
     }
 
     @Override

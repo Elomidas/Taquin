@@ -1,9 +1,12 @@
 package model;
 
-public class Agent {
+import model.moves.MoveStrategy;
+
+public class Agent extends Thread {
     private Position position;
     private Position target;
     private int id;
+    private MoveStrategy strategy;
 
     private static int _id = 0;
     private static Plateau _plateau;
@@ -22,9 +25,10 @@ public class Agent {
         target = targ;
         id = _id;
         _id++;
+        strategy = null;
     }
 
-    public int getId() {
+    public int getAgentId() {
         return id;
     }
 
@@ -34,11 +38,28 @@ public class Agent {
         return position;
     }
 
-    public void Message(int targetId, String perform, String action, Position toFree) {
+    public void Message(int targetId, Message.performs perform, Message.actions action, Position toFree) {
         //TODO
     }
 
     public void setPosition(Position pos) {
         position = pos;
+    }
+
+    protected void setStrategy(MoveStrategy strat) {
+        strategy = strat;
+    }
+
+    protected boolean move() {
+        return strategy != null && strategy.move(this);
+    }
+
+    protected void Compute() {
+        //TODO
+    }
+
+    @Override
+    public void run() {
+        //TODO
     }
 }
