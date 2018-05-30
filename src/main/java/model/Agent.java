@@ -1,9 +1,12 @@
 package model;
 
+import model.moves.MoveStrategy;
+
 public class Agent {
     private Position position;
     private Position target;
     private int id;
+    private MoveStrategy strategy;
 
     private static int _id = 0;
     private static Plateau _plateau;
@@ -21,6 +24,7 @@ public class Agent {
         target = targ;
         id = _id;
         _id++;
+        strategy = null;
     }
 
     public int getId() {
@@ -37,5 +41,13 @@ public class Agent {
 
     public void setPosition(Position pos) {
         position = pos;
+    }
+
+    protected void setStrategy(MoveStrategy strat) {
+        strategy = strat;
+    }
+
+    protected boolean move() {
+        return strategy != null && strategy.move(this);
     }
 }

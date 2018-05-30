@@ -2,7 +2,7 @@ package model;
 
 import java.util.Objects;
 
-public class Position {
+public class Position extends Thread {
 
     private int px, py;
 
@@ -31,6 +31,10 @@ public class Position {
         setY(y);
     }
 
+    protected void Compute() {
+        //TODO
+    }
+
     @Override
     public boolean equals(Object obj){
         if(this == obj)
@@ -42,9 +46,7 @@ public class Position {
         final Position pos = (Position) obj;
         if(pos.getX() != this.getX())
             return false;
-        if(pos.getY() != this.getY())
-            return false;
-        return true;
+        return pos.getY() == this.getY();
     }
 
     @Override
