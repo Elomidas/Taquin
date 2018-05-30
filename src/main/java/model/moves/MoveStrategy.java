@@ -15,7 +15,7 @@ public class MoveStrategy {
      * @param h Horizontal delta
      * @param v Vertical delta
      */
-    public MoveStrategy(int h, int v) {
+    private MoveStrategy(int h, int v) {
         horizontally = h;
         vertically = v;
     }

@@ -2,15 +2,15 @@ package model;
 
 import java.util.ArrayList;
 
-public class Plateau {
+public class Board {
     private ArrayList<Agent> agents;
     private int high, length;
 
-    public Plateau() {
+    public Board() {
         this(5, 5);
     }
 
-    public Plateau(int sizeX, int sizeY) {
+    public Board(int sizeX, int sizeY) {
         agents = new ArrayList<>();
         high = sizeY;
         length = sizeX;
@@ -41,6 +41,15 @@ public class Plateau {
     public boolean isFree(Position position) {
         for(Agent a : agents) {
             if(a.getPosition() == position) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean finish() {
+        for(Agent agent : agents) {
+            if(!agent.goodPosition()) {
                 return false;
             }
         }

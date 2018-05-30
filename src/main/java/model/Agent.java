@@ -12,23 +12,36 @@ public class Agent extends Thread {
     private MoveStrategy strategy;
 
     private static int _id = 0;
-    private static Plateau _plateau;
     private static Messages _messages;
 
-    public final static int _up = 1,
+    private final static int _up = 1,
                             _down = 2,
                             _left = 3,
                             _right = 4,
                             _none = 0;
+    private static Board _board;
 
-    static public void setPlateau(Plateau p) {
-        _plateau = p;
+    /**
+     * Set the board to watch
+     * @param p board to watch
+     */
+    static public void setPlateau(Board p) {
+        _board = p;
     }
 
-    static public Plateau getPlateau() {
-        return _plateau;
+    /**
+     * Get the board to watch
+     * @return the board to watch
+     */
+    static public Board getPlateau() {
+        return _board;
     }
 
+    /**
+     * Constructor
+     * @param pos   Initial position
+     * @param targ  Position to reach
+     */
     public Agent(Position pos, Position targ) {
         position = pos;
         target = targ;
@@ -41,14 +54,23 @@ public class Agent extends Thread {
         return id;
     }
 
-    public Messages getMessages(){ return _messages; }
-
     public Position getPosition() {
         return position;
     }
 
-    public void Message(int targetId, Message.performs perform, Message.actions action, Position toFree) {
-        //TODO
+    /**
+     * Send a message from this agent
+     * @param targetId  Id of the targeted agent
+     * @param perform   Perform of the message
+     * @param action    Action of the message
+     * @param toFree    Position affected
+     */
+    public void SendMessage(int targetId, Message.performs perform, Message.actions action, Position toFree) {
+        Messages.add(new Message(id, targetId, perform, action, toFree));
+    }
+
+    public Message RetrieveMessage() {
+        return Messages.getNext(this);
     }
 
     public void setPosition(Position pos) {
@@ -59,6 +81,10 @@ public class Agent extends Thread {
         strategy = strat;
     }
 
+    /**
+     * Move the agent if possible
+     * @return true if agent has been moved, false else
+     */
     protected boolean move() {
         return strategy != null && strategy.move(this);
     }
@@ -69,7 +95,24 @@ public class Agent extends Thread {
 
     @Override
     public void run() {
-        //TODO
+        while(!_board.finish()) {
+            //TODO
+            if(goodPosition()) {
+                //TODO
+                //Wait for messages from others
+            } else {
+                //TODO
+                //Try to reach its target
+            }
+        }
+    }
+
+    /**
+     * Check if agent reach its target
+     * @return true if agent is at targeted position, false else.
+     */
+    public boolean goodPosition() {
+        return position.equals(target);
     }
 
     public List<Integer> FindBestPath(){
