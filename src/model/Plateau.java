@@ -26,4 +26,15 @@ public class Plateau {
     public int size() {
         return agents.size();
     }
+
+    public void add(Position initial, Position target) {
+        agents.add(new Agent(initial, target));
+    }
+
+    public boolean checkPosition(Position pos) {
+        return pos.getX() >= 0
+                && pos.getX() < length
+                && pos.getY() >= 0
+                && pos.getY() < high;
+    }
 }
