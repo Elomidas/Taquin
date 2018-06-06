@@ -13,6 +13,7 @@ public class Agent extends Thread {
 
     private static int _id = 0;
     private static Messages _messages;
+    private enum direction{none, up, down, left, right}
 
     private static Board _board;
 
