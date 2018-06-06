@@ -14,11 +14,6 @@ public class Agent extends Thread {
     private static int _id = 0;
     private static Messages _messages;
 
-    private final static int _up = 1,
-                            _down = 2,
-                            _left = 3,
-                            _right = 4,
-                            _none = 0;
     private static Board _board;
 
     /**
@@ -117,6 +112,19 @@ public class Agent extends Thread {
 
     public List<Integer> FindBestPath(){
         List<Integer> res = new ArrayList<>();
+
+        //Heuristique utilisé dans notre A*
+        ArrayList<Integer> h = new ArrayList<>(getPlateau().size());
+
+        //
+        ArrayList<Integer> g = new ArrayList<>(getPlateau().size());
+
+        for(int i=0;i<getPlateau().size();i++){
+            h.set(i, Math.abs(position.getX() - target.getX() + Math.abs(position.getY() - target.getY()) ));
+        }
+
+        for (int i=0;i<g.size();i++)
+            g.set(i, 0);
 
 
 
