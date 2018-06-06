@@ -140,6 +140,19 @@ public class Agent extends Thread {
     public List<Integer> FindBestPath(){
         List<Integer> res = new ArrayList<>();
 
+        //Heuristique utilisé dans notre A*
+        ArrayList<Integer> h = new ArrayList<>(getPlateau().size());
+
+        //
+        ArrayList<Integer> g = new ArrayList<>(getPlateau().size());
+
+        for(int i=0;i<getPlateau().size();i++){
+            h.set(i, Math.abs(position.getX() - target.getX() + Math.abs(position.getY() - target.getY()) ));
+        }
+
+        for (int i=0;i<g.size();i++)
+            g.set(i, 0);
+
 
 
         return res;

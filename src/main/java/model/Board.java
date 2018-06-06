@@ -27,6 +27,22 @@ public class Board {
         return agents.size();
     }
 
+    public int getHigh() {
+        return high;
+    }
+
+    public void setHigh(int high) {
+        this.high = high;
+    }
+
+    public int getLength() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }
+
     public void add(Position initial, Position target) {
         agents.add(new Agent(initial, target));
     }
