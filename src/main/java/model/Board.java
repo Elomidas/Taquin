@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class Board {
     private ArrayList<Agent> agents;
-    private int high, length;
+    private int height, length;
 
     public Board() {
         this(5, 5);
@@ -14,9 +14,9 @@ public class Board {
 
     public Board(int sizeX, int sizeY) {
         agents = new ArrayList<>();
-        high = sizeY;
+        height = sizeY;
         length = sizeX;
-        Graph.init(sizeX, sizeY);
+        Graph.init(height, length);
         Agent.setPlateau(this);
     }
 
@@ -31,12 +31,12 @@ public class Board {
         return agents.size();
     }
 
-    public int getHigh() {
-        return high;
+    public int getHeight() {
+        return height;
     }
 
-    public void setHigh(int high) {
-        this.high = high;
+    public void setHeight(int height) {
+        this.height = height;
     }
 
     public int getLength() {
@@ -47,24 +47,35 @@ public class Board {
         this.length = length;
     }
 
-    public void add(Position initial, Position target) {
-        agents.add(new Agent(initial, target));
+    public void add(int px, int py, int tx, int ty, String img) {
+        agents.add(new Agent(new Position(px, py), new Position(tx, ty), img));
     }
 
     public boolean checkPosition(Position pos) {
         return pos.getX() >= 0
                 && pos.getX() < length
                 && pos.getY() >= 0
-                && pos.getY() < high;
+                && pos.getY() < height;
     }
 
-    public boolean isFree(Position position) {
+    public boolean isFree(int x, int y) {
+        Position position = new Position(x, y);
         for(Agent a : agents) {
-            if(a.getPosition() == position) {
+            if(a.getPosition().equals(position)) {
                 return false;
             }
         }
         return true;
+    }
+
+    public Agent getAgent(int x, int y){
+        Position position = new Position(x, y);
+        for(Agent a : agents) {
+            if(a.getPosition().equals(position)) {
+                return a;
+            }
+        }
+        return null;
     }
 
     public boolean finish() {

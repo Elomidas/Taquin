@@ -1,12 +1,10 @@
 package model;
 
-import model.moves.*;
 import model.path.Graph;
+import model.moves.MoveStrategy;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static model.path.Graph.AstarSearch;
 
 public class Agent extends Thread {
     private Position position;
@@ -17,7 +15,13 @@ public class Agent extends Thread {
     private static int _id = 0;
     private static Messages _messages;
 
+    public String getImg() {
+        return img;
+    }
+
     private static Board _board;
+
+    private final String img;
 
     /**
      * Set the board to watch
@@ -39,13 +43,15 @@ public class Agent extends Thread {
      * Constructor
      * @param pos   Initial position
      * @param targ  Position to reach
+     * @param img   Path to image
      */
-    public Agent(Position pos, Position targ) {
+    public Agent(Position pos, Position targ, String img) {
         position = new Position(pos.getX(), pos.getY());
         target = new Position(targ.getX(), targ.getY());
         id = _id;
         _id++;
         strategy = null;
+        this.img = img;
     }
 
     public int getAgentId() {
