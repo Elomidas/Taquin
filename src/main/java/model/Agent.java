@@ -1,6 +1,6 @@
 package model;
 
-import model.moves.*;
+import model.moves.MoveStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,9 +13,16 @@ public class Agent extends Thread {
 
     private static int _id = 0;
     private static Messages _messages;
+
+    public String getImg() {
+        return img;
+    }
+
     private enum direction{none, up, down, left, right}
 
     private static Board _board;
+
+    private final String img;
 
     /**
      * Set the board to watch
@@ -38,12 +45,13 @@ public class Agent extends Thread {
      * @param pos   Initial position
      * @param targ  Position to reach
      */
-    public Agent(Position pos, Position targ) {
+    public Agent(Position pos, Position targ, String img) {
         position = pos;
         target = targ;
         id = _id;
         _id++;
         strategy = null;
+        this.img = img;
     }
 
     public int getAgentId() {

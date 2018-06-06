@@ -1,5 +1,6 @@
 package model;
 
+import controller.Controller;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -26,13 +27,13 @@ public class Main extends Application {
     /**
      * Controlleur associé à la connexion
      */
-    //private Controller controller;
+    private Controller controller;
 
     /**
      * Constructeur par défaut
      */
     public Main(){
-        //controller = new Controller_Connexion();
+        controller = new Controller();
     }
 
     @Override
@@ -78,10 +79,10 @@ public class Main extends Application {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(Objects.requireNonNull(getClass().getClassLoader().getResource(root)));
             AnchorPane contenu = loader.load();
-            /*
+
             controller = loader.getController();
             controller.setMain(main);
-            */
+
             rootLayout.setCenter(contenu);
         }
         catch (IOException e)

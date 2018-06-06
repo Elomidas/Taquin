@@ -14,6 +14,7 @@ public class Board {
         agents = new ArrayList<>();
         high = sizeY;
         length = sizeX;
+        this.add(new Position(0,0), new Position(1,1), "etoile.jpg");
     }
 
     public Agent getAgent(int index) {
@@ -43,8 +44,8 @@ public class Board {
         this.length = length;
     }
 
-    public void add(Position initial, Position target) {
-        agents.add(new Agent(initial, target));
+    public void add(Position initial, Position target, String img) {
+        agents.add(new Agent(initial, target, img));
     }
 
     public boolean checkPosition(Position pos) {
@@ -54,13 +55,24 @@ public class Board {
                 && pos.getY() < high;
     }
 
-    public boolean isFree(Position position) {
+    public boolean isFree(int x, int y) {
+        Position position = new Position(x, y);
         for(Agent a : agents) {
-            if(a.getPosition() == position) {
+            if(a.getPosition().equals(position)) {
                 return false;
             }
         }
         return true;
+    }
+
+    public Agent getAgent(int x, int y){
+        Position position = new Position(x, y);
+        for(Agent a : agents) {
+            if(a.getPosition().equals(position)) {
+                return a;
+            }
+        }
+        return null;
     }
 
     public boolean finish() {
