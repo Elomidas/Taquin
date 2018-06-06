@@ -7,7 +7,10 @@ import javafx.scene.layout.GridPane;
 import model.Board;
 import model.Main;
 
-public class Controller {
+import java.util.Observable;
+import java.util.Observer;
+
+public class Controller implements Observer {
 
     private static double gridWidth = 50;
     private static double gridHeight = 50;
@@ -65,6 +68,11 @@ public class Controller {
 
     public void setMain(Main main){
         this.main = main;
+        this.board.addObserver(this);
     }
 
+    @Override
+    public void update(Observable observable, Object o) {
+
+    }
 }
