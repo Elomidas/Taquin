@@ -2,57 +2,189 @@ package model.path;
 
 import model.Position;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Graph {
     static private Node nodes[][];
-    int agentId;
-    Position target;
     public enum direction{none, up, down, left, right}
+
+    static public void init(int height, int width) {
+        nodes = new Node[height][width];
+        for(int i = 0; i < nodes.length; i++) {
+            for(int j = 0; j < nodes[i].length; j++) {
+                nodes[i][j] = new Node(new Position(i, j));
+            }
+        }
+
+        for(int i = 0; i < nodes.length; i++) {
+            for(int j = 0; j < nodes[i].length; j++) {
+                List<Edge> edges = new ArrayList<>();
+                if(i > 0) {
+                    edges.add(new Edge(nodes[i-1][j]));
+                }
+                if(i < (nodes.length - 1)) {
+                    edges.add(new Edge(nodes[i+1][j]));
+                }
+                if(j > 0) {
+                    edges.add(new Edge(nodes[i][j-1]));
+                }
+                if(j < (nodes[i].length - 1)) {
+                    edges.add(new Edge(nodes[i][j+1]));
+                }
+                //Copy
+                Edge tab[] = new Edge[edges.size()];
+                for(int k = 0; k < edges.size(); k++) {
+                    tab[k] = edges.get(k);
+                }
+                nodes[i][j].adjacencies = tab;
+            }
+        }
+    }
 
     public static synchronized void setFree(Position pos, boolean free) {
         nodes[pos.getX()][pos.getY()].setFree(free);
     }
 
-    public Graph(int id, Position t) {
-        agentId = id;
+    private static int computeDist(Position p1, Position p2) {
+        return Math.abs(p1.getX() - p2.getX()) + Math.abs(p1.getY() - p2.getY());
     }
 
-    public void setTarget(Position t) {
-        target = new Position(t.getX(), t.getY());
-        for(int i = 0; i < nodes.length; i++) {
-            for(int j = 0; j < nodes[i].length; i++) {
-                nodes[i][j].setHeuristics(target, agentId);
+    public static synchronized List<direction> AstarSearch(Position src, Position end, int agentId) {
+        Node source = nodes[src.getX()][src.getY()];
+        Node goal = nodes[end.getX()][end.getY()];
+        source.setHVal(computeDist(src, end), agentId);
+
+        Set<Node> explored = new HashSet<Node>();
+
+        PriorityQueue<Node> queue = new PriorityQueue<Node>(
+                20,
+                Comparator.comparingDouble(i -> i.f_scores)
+        );
+
+        //cost from start
+        source.g_scores = 0;
+
+        queue.add(source);
+
+        boolean found = false;
+
+        while((!queue.isEmpty())&&(!found)){
+
+            //the node in having the lowest f_score value
+            Node current = queue.poll();
+
+            explored.add(current);
+
+            //goal found
+            if(current.toString().equals(goal.toString())) {
+                found = true;
             }
+
+            //check every child of current node
+            for(Edge e : current.adjacencies) {
+                Node child = e.target;
+                child.setHVal(computeDist(child.pos, end), agentId);
+                int cost = e.cost;
+                int temp_g_scores = current.g_scores + cost;
+                int temp_f_scores = temp_g_scores + child.h_scores.get(agentId);
+
+                /* If it's the first time we explore the child
+                 * or we have a better score than previously
+                 */
+                if((!explored.contains(child)) ||
+                        (temp_f_scores < child.f_scores)) {
+
+                    child.parent = current;
+                    child.g_scores = temp_g_scores;
+                    child.f_scores = temp_f_scores;
+
+                    if(queue.contains(child)){
+                        queue.remove(child);
+                    }
+
+                    queue.add(child);
+
+                }
+
+            }
+
         }
+
+        //Reconstruct path
+        Stack<Node> order = new Stack<>();
+        Node current = goal;
+        do {
+            order.push(current);
+            current = current.parent;
+        } while(!current.pos.equals(src));
+
+        List<direction> dirs = new ArrayList<>();
+        while(!order.empty()) {
+            Node tmp = order.pop();
+            dirs.add(getDir(current.pos, tmp.pos));
+            current = tmp;
+        }
+
+        return dirs;
     }
 
-    private int compare(Node n1, Node n2) {
-        return Integer.compare(n2.getHeuristic(agentId), n1.getHeuristic(agentId));
+    static private direction getDir(Position src, Position dest) {
+        int dx = src.getX() - dest.getX();
+        if(dx == 1) {
+            return direction.up;
+        }
+        if(dx == -1) {
+            return direction.down;
+        }
+        int dy = src.getY() - dest.getY();
+        if(dy == 1) {
+            return direction.left;
+        }
+        if(dy == -1) {
+            return direction.right;
+        }
+        System.err.println("Error getDir : {" + dx + "," + dy + "}");
+        return null;
     }
 
-    public void AStar(Position src) {
-        /*
-        closedList = File()
-        openList = FilePrioritaire(comparateur=compare2Noeuds)
-        openList.ajouter(depart)
-        tant que openList n'est pas vide
-        u = openList.depiler()
-        si u.x == objectif.x et u.y == objectif.y
-        reconstituerChemin(u)
-        terminer le programme
-        pour chaque voisin v de u dans g
-        si v existe dans closedList avec un cout inférieur ou si v existe dans openList avec un cout inférieur
-        neRienFaire()
-        sinon
-        v.cout = u.cout +1
-        v.heuristique = v.cout + distance([v.x, v.y], [objectif.x, objectif.y])
-        openList.ajouter(v)
-        closedList.ajouter(u)
-        terminer le programme (avec erreur)
-        */
+    static class Node {
+
+        final Position pos;
+        int g_scores;
+        HashMap<Integer, Integer> h_scores;
+        int f_scores = 0;
+        Edge[] adjacencies;
+        Node parent;
+        boolean free;
+
+        Node(Position p) {
+            pos = p;
+            free = true;
+            h_scores = new HashMap<>();
+        }
+
+        void setHVal(int dist, int agentId) {
+            h_scores.put(agentId, dist);
+        }
+
+        public String toString() {
+            return pos.toString();
+        }
+
+        public void setFree(boolean f) {
+            free = f;
+        }
+
+    }
+
+    static class Edge {
+        final int cost;
+        final Node target;
+
+        Edge(Node targetNode){
+            target = targetNode;
+            cost = 1;
+        }
     }
 }

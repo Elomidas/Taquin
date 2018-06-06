@@ -51,4 +51,14 @@ public class Position {
     public int hashCode(){
         return Objects.hash(px, py);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("[");
+        builder.append(px)
+                .append(",")
+                .append(py)
+                .append("]");
+        return builder.toString();
+    }
 }

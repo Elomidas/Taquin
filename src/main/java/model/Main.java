@@ -70,6 +70,10 @@ public class Main extends Application {
     private void launchGame(BorderPane rootLayout, Main main){
         //controller = new Controller_Client();
         afficherContenu(rootLayout, main, "game.fxml");
+        Board b = new Board(5,5);
+        b.add(new Position(0,0), new Position(4,4));
+        b.add(new Position(2,2), new Position(3,3));
+        b.start();
     }
 
     private void afficherContenu(BorderPane rootLayout, Main main, String root){

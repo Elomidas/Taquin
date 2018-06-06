@@ -6,6 +6,8 @@ import model.path.Graph;
 import java.util.ArrayList;
 import java.util.List;
 
+import static model.path.Graph.AstarSearch;
+
 public class Agent extends Thread {
     private Position position;
     private Position target;
@@ -16,12 +18,6 @@ public class Agent extends Thread {
     private static Messages _messages;
 
     private static Board _board;
-
-    private static Graph graph;
-
-    public static void setGraph(Graph g) {
-        graph = g;
-    }
 
     /**
      * Set the board to watch
@@ -45,8 +41,8 @@ public class Agent extends Thread {
      * @param targ  Position to reach
      */
     public Agent(Position pos, Position targ) {
-        position = pos;
-        target = targ;
+        position = new Position(pos.getX(), pos.getY());
+        target = new Position(targ.getX(), targ.getY());
         id = _id;
         _id++;
         strategy = null;
@@ -113,10 +109,10 @@ public class Agent extends Thread {
      * @return true if agent has been moved, false else
      */
     protected boolean move(Graph.direction dir) {
-        graph.setFree(position, true);
+        Graph.setFree(position, true);
         setStrategy(StrategyFromDirection(dir));
         boolean result = strategy != null && strategy.move(this);
-        graph.setFree(position, true);
+        Graph.setFree(position, true);
         return result;
     }
 
@@ -134,6 +130,7 @@ public class Agent extends Thread {
             } else {
                 //TODO
                 //Try to reach its target
+                FindBestPath();
             }
         }
     }
@@ -146,24 +143,7 @@ public class Agent extends Thread {
         return position.equals(target);
     }
 
-    public List<Integer> FindBestPath(){
-        List<Integer> res = new ArrayList<>();
-
-        //Heuristique utilisé dans notre A*
-        ArrayList<Integer> h = new ArrayList<>(getPlateau().size());
-
-        //
-        ArrayList<Integer> g = new ArrayList<>(getPlateau().size());
-
-        for(int i = 0; i < getPlateau().size(); i++){
-            h.set(i, Math.abs(position.getX() - target.getX() + Math.abs(position.getY() - target.getY()) ));
-        }
-
-        for (int i = 0; i < g.size(); i++)
-            g.set(i, 0);
-
-
-
-        return res;
+    public List<Graph.direction> FindBestPath() {
+        return Graph.AstarSearch(position, target, getAgentId());
     }
 }

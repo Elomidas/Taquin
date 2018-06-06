@@ -1,5 +1,7 @@
 package model;
 
+import model.path.Graph;
+
 import java.util.ArrayList;
 
 public class Board {
@@ -14,6 +16,8 @@ public class Board {
         agents = new ArrayList<>();
         high = sizeY;
         length = sizeX;
+        Graph.init(sizeX, sizeY);
+        Agent.setPlateau(this);
     }
 
     public Agent getAgent(int index) {
@@ -70,5 +74,11 @@ public class Board {
             }
         }
         return true;
+    }
+
+    public void start() {
+        for(Agent agent : agents) {
+            agent.start();
+        }
     }
 }
