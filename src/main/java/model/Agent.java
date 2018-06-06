@@ -119,6 +119,7 @@ public class Agent extends Thread {
         setStrategy(StrategyFromDirection(dir));
         boolean result = strategy != null && strategy.move(this);
         Graph.setFree(position, true);
+        _board.notifyObservers();
         return result;
     }
 
@@ -136,6 +137,7 @@ public class Agent extends Thread {
             } else {
                 //TODO
                 //Try to reach its target
+                _board.notifyObservers();
                 FindBestPath();
             }
         }

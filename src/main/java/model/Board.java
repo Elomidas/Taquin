@@ -94,4 +94,10 @@ public class Board extends Observable {
             agent.start();
         }
     }
+
+    public void stop(){
+        for(Agent agent : agents) {
+            agent.stop();
+        }
+    }
 }

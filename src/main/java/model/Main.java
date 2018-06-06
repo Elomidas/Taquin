@@ -95,4 +95,12 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
+    /**
+     * Redéfintion de la fonction stop appelée lors du clic sur la croix rouge
+     */
+    @Override
+    public void stop(){
+        controller.stop();
+    }
 }

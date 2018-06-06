@@ -8,7 +8,10 @@ import model.Board;
 import model.Main;
 import model.Position;
 
-public class Controller {
+import java.util.Observable;
+import java.util.Observer;
+
+public class Controller implements Observer {
 
     private static double gridWidth = 50;
     private static double gridHeight = 50;
@@ -70,6 +73,15 @@ public class Controller {
 
     public void setMain(Main main){
         this.main = main;
+        this.board.addObserver(this);
     }
 
+    @Override
+    public void update(Observable observable, Object o) {
+        System.out.println("test");
+    }
+
+    public void stop(){
+        board.stop();
+    }
 }
