@@ -1,6 +1,7 @@
 package model;
 
 import model.moves.*;
+import model.path.Graph;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,9 +14,14 @@ public class Agent extends Thread {
 
     private static int _id = 0;
     private static Messages _messages;
-    private enum direction{none, up, down, left, right}
 
     private static Board _board;
+
+    private static Graph graph;
+
+    public static void setGraph(Graph g) {
+        graph = g;
+    }
 
     /**
      * Set the board to watch
@@ -86,7 +92,7 @@ public class Agent extends Thread {
      * @param dir Move's direction
      * @return MoveStrategy matching the direction
      */
-    private MoveStrategy StrategyFromDirection(direction dir) {
+    private MoveStrategy StrategyFromDirection(Graph.direction dir) {
         switch(dir) {
             case up:
                 return MoveStrategy._up;
@@ -106,9 +112,12 @@ public class Agent extends Thread {
      * @param dir Direction of the move
      * @return true if agent has been moved, false else
      */
-    protected boolean move(direction dir) {
+    protected boolean move(Graph.direction dir) {
+        graph.setFree(position, true);
         setStrategy(StrategyFromDirection(dir));
-        return strategy != null && strategy.move(this);
+        boolean result = strategy != null && strategy.move(this);
+        graph.setFree(position, true);
+        return result;
     }
 
     protected void Compute() {
@@ -146,11 +155,11 @@ public class Agent extends Thread {
         //
         ArrayList<Integer> g = new ArrayList<>(getPlateau().size());
 
-        for(int i=0;i<getPlateau().size();i++){
+        for(int i = 0; i < getPlateau().size(); i++){
             h.set(i, Math.abs(position.getX() - target.getX() + Math.abs(position.getY() - target.getY()) ));
         }
 
-        for (int i=0;i<g.size();i++)
+        for (int i = 0; i < g.size(); i++)
             g.set(i, 0);
 
 

@@ -1,5 +1,7 @@
 package model;
 
+import model.path.Graph;
+
 import java.util.Objects;
 
 public class Position {
@@ -18,11 +20,11 @@ public class Position {
         return py;
     }
 
-    public void setX(int x) {
+    private void setX(int x) {
         px = x;
     }
 
-    public void setY(int y) {
+    private void setY(int y) {
         py = y;
     }
 
