@@ -3,8 +3,10 @@ package model;
 import model.path.Graph;
 
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
-public class Board {
+public class Board extends Observable {
     private ArrayList<Agent> agents;
     private int height, length;
 
