@@ -73,15 +73,41 @@ public class Agent extends Thread {
         position = pos;
     }
 
-    protected void setStrategy(MoveStrategy strat) {
+    /**
+     * Set move strategy
+     * @param strat Strategy to set
+     */
+    private void setStrategy(MoveStrategy strat) {
         strategy = strat;
     }
 
     /**
+     * Adapt the move strategy to the direction
+     * @param dir Move's direction
+     * @return MoveStrategy matching the direction
+     */
+    private MoveStrategy StrategyFromDirection(direction dir) {
+        switch(dir) {
+            case up:
+                return MoveStrategy._up;
+            case down:
+                return MoveStrategy._down;
+            case left:
+                return MoveStrategy._left;
+            case right:
+                return MoveStrategy._right;
+            default:
+                return null;
+        }
+    }
+
+    /**
      * Move the agent if possible
+     * @param dir Direction of the move
      * @return true if agent has been moved, false else
      */
-    protected boolean move() {
+    protected boolean move(direction dir) {
+        setStrategy(StrategyFromDirection(dir));
         return strategy != null && strategy.move(this);
     }
 
