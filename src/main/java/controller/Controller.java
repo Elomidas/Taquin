@@ -30,9 +30,6 @@ public class Controller implements Observer {
     private GridPane gridPane;
 
     public Controller() {
-
-        System.out.println("New controller");
-
         board = new Board(5,5);
         board.add(0,0, 4,4, "etoile.jpg");
         board.add(2,2, 3,3, "etoile.jpg");

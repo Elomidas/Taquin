@@ -42,7 +42,6 @@ public class Graph {
     }
 
     public static synchronized void setFree(Position pos, boolean free) {
-        System.out.println(pos);
         nodes[pos.getX()][pos.getY()].setFree(free);
     }
 

@@ -15,7 +15,7 @@ public class Agent extends Thread {
 
     private static int _id = 0;
     private static Messages _messages;
-    static boolean test = false;
+    private static boolean test = false;
 
     public String getImg() {
         return img;
@@ -39,6 +39,10 @@ public class Agent extends Thread {
      */
     static public Board getPlateau() {
         return _board;
+    }
+
+    static public void setRunnable(boolean runnable) {
+        test = runnable;
     }
 
     /**
@@ -140,30 +144,36 @@ public class Agent extends Thread {
     @Override
     public void run() {
         test = true;
+        boolean fini = false;
         while(!_board.finish() && test) {
             //TODO
             if(goodPosition()) {
                 //TODO
-                System.out.println("J'ai fini (" + getAgentId() + ")");
+                if(!fini) {
+                    System.out.println("J'ai fini (" + getAgentId() + ")");
+                    fini = true;
+                }
                 tempo();
             } else {
+                fini = false;
                 //TODO
                 //Try to reach its target
                 List<Graph.direction> path = FindBestPath();
-                for(Graph.direction dir : path) {
-                    System.out.println("Move : " + getAgentId());
-                    test = move(dir);
+                for(int i = 0; (i < path.size()) && test; i++) {
+                    System.out.println("Move : " + getAgentId() + " (" + path.get(i) + ")");
+                    test = move(path.get(i));
                     if(!test) {
                         System.out.println(getAgentId() + " : blocked");
                         if(!ghost) {
                             path = FindBestPath();
+                            i = 0;
                         } else {
                             Position target = strategy.getNewPos(this);
                             int agent = _board.getId(target);
                             if(agent != -1) {
                                 SendRequest(agent, target);
                             }
-                            while(!_board.isFree(target)) {
+                            while(!_board.isFree(target) && !test) {
                                 tempo();
                                 System.out.println("Waiting (" + getAgentId() + ")");
                             }
@@ -174,6 +184,10 @@ public class Agent extends Thread {
                 }
             }
         }
+        if(!fini && goodPosition()) {
+            System.out.println("J'ai fini (" + getAgentId() + ")");
+        }
+        System.out.println(getAgentId() + " -> Fin du thread");
     }
 
     /**

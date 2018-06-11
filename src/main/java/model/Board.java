@@ -109,8 +109,12 @@ public class Board extends Observable {
 
     //TODO
     public void stop(){
-        for(Agent agent : agents) {
-            agent.stop();
+        Agent.setRunnable(false);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        Agent.setRunnable(true);
     }
 }
