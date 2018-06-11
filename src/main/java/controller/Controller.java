@@ -37,6 +37,7 @@ public class Controller implements Observer {
     public Controller() {
         board = new Board(5,5);
         board.add(0,0, 4,4, "etoile.jpg");
+        board.add(0,4, 4,0, "etoile.jpg");
     }
 
     @FXML
@@ -53,8 +54,6 @@ public class Controller implements Observer {
         images = new Image[board.getLength()][board.getHeight()];
 
         this.draw();
-        gridPane.setGridLinesVisible(true);
-        gridPane.setPadding(new Insets(3, 3, 3, 3));
 
     }
 
@@ -90,26 +89,15 @@ public class Controller implements Observer {
     @Override
     public void update(Observable observable, Object o) {
         Platform.runLater(() -> {
-            System.out.println("test");
             Position[] positions = (Position[]) (o);
             Position oldPos = positions[0];
             Position newPos = positions[1];
 
-/*            int length = board.getLength(), heigth = board.getHeight();
+            System.out.println("- " + oldPos + "\n+ " + newPos);
 
-            ObservableList<Node> children = gridPane.getChildren();
-            int oldIndex = (oldPos.getX() * length) + oldPos.getY();
-            children.set(oldIndex, getImageView(defaultImg));
-            int newIndex = (newPos.getX() * length) + newPos.getY();
-            children.set(newIndex, getImageView("etoile.jpg"));
-            */
+            gridPane.add(getImageView(defaultImg), oldPos.getY(), oldPos.getX());
+            gridPane.add(getImageView("etoile.jpg"), newPos.getY(), newPos.getX());
 
-            gridPane.add(getImageView(defaultImg), oldPos.getX(), oldPos.getY());
-            gridPane.add(getImageView("etoile.jpg"), newPos.getX(), newPos.getY());
-            gridPane.setPadding(new Insets(3, 3, 3, 3));
-            gridPane.setGridLinesVisible(true);
-
-            System.out.println("End Test");
         });
     }
 
