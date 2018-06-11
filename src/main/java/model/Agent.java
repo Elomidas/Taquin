@@ -87,6 +87,10 @@ public class Agent extends Thread {
         SendMessage(targetId, Message.performs.response, Message.actions.move, toFree);
     }
 
+    /**
+     * Get next message for this agents
+     * @return The next message, null if there isn't any
+     */
     public Message RetrieveMessage() {
         return Messages.getNext(this);
     }
@@ -143,7 +147,6 @@ public class Agent extends Thread {
 
     @Override
     public void run() {
-        test = true;
         boolean fini = false;
         while(!_board.finish() && test) {
             //TODO
@@ -191,6 +194,15 @@ public class Agent extends Thread {
             System.out.println("J'ai fini (" + getAgentId() + ")");
         }
         System.out.println(getAgentId() + " -> Fin du thread");
+    }
+
+    private Message wiatingMessage() {
+        Message message = null;
+        while(test && (message == null)) {
+            tempo();
+            message = RetrieveMessage();
+        }
+        return message;
     }
 
     /**
