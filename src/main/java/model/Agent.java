@@ -141,8 +141,8 @@ public class Agent extends Thread {
         if(!result) {
             System.out.println((strategy == null) ? "Strat null" : "unable to move");
         } else {
-            _board.notifyObservers(new Position[]{oldPos, new Position(position)});
             _board.setChanged();
+            _board.notifyObservers(new Position[]{oldPos, new Position(position)});
         }
         return result;
     }

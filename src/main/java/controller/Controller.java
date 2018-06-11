@@ -42,6 +42,7 @@ public class Controller implements Observer {
         board.add(0,4, 4,0, "etoile.jpg");
         board.add(0,0, 4,4, "etoile.jpg");
         board.add(4,0, 0,4, "etoile.jpg");
+        board.add(1,1, 2,2, "etoile.jpg");
         //board.add(4,4, 0,0, "etoile.jpg");
         modifs = new ConcurrentLinkedQueue<>();
     }
@@ -94,23 +95,32 @@ public class Controller implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
+
         Position[] positions = (Position[]) (o);
         Position oldPos = positions[0];
         Position newPos = positions[1];
+        /*
         if(!newPos.equals(oldPos)) {
             modifs.offer(new modif(oldPos.getX(), oldPos.getY(), false));
             modifs.offer(new modif(newPos.getX(), newPos.getY(), true));
         }
-        Platform.runLater(this::updateDisplay);
+        */
+        Platform.runLater(() -> {
+            this.updateDisplay(oldPos, newPos);
+        });
     }
 
-    private void updateDisplay() {
+    private void updateDisplay(Position oldPos, Position newPos) {
+        /*
         while(!modifs.isEmpty()) {
             modif m = modifs.poll();
             if(m != null) {
                 gridPane.add(getImageView(m.action ? "etoile.jpg" : defaultImg), m.column, m.line);
             }
         }
+        */
+        gridPane.add(this.getImageView(defaultImg), oldPos.getX(), oldPos.getY());
+        gridPane.add(this.getImageView("etoile.jpg"), newPos.getX(), newPos.getY());
     }
 
     public void stop(){
