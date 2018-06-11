@@ -1,11 +1,7 @@
 package controller;
 
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.scene.Node;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import model.Board;
@@ -14,7 +10,6 @@ import model.Position;
 
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Controller implements Observer {
 
@@ -26,28 +21,28 @@ public class Controller implements Observer {
 
     private static final String defaultImg = "default.jpg";
 
-    private ConcurrentLinkedQueue<modif> modifs;
+    /**
+     * Thread utilisé pour gérer le board
+     */
     private Thread t;
 
     private Main main;
 
+    /**
+     * Board
+     */
     private Board board;
-
-    private Image[][] images;
 
     @FXML
     private GridPane gridPane;
 
     public Controller() {
         board = new Board(5,5);
-        board.add(0,4, 4,0, "etoile.jpg");
-        board.add(0,0, 4,4, "etoile.jpg");
-        board.add(4,0, 0,4, "etoile.jpg");
-        board.add(4,4, 0,0, "etoile.jpg");
-        board.add(1,1, 2,2, "etoile.jpg");
-        board.add(2,1, 3,4, "etoile.jpg");
-        //board.add(4,4, 0,0, "etoile.jpg");
-        modifs = new ConcurrentLinkedQueue<>();
+        board.add(0,4, 4,0, "1.jpg");
+        board.add(0,1, 4,4, "2.jpg");
+        //board.add(4,0, 0,4, "3.jpg");
+        //board.add(4,4, 0,0, "4.jpg");
+        //board.add(1,1, 2,2, "5.jpg");
     }
 
     @FXML
@@ -60,8 +55,6 @@ public class Controller implements Observer {
 
         gridPane.setLayoutX(( windowWidth-gridPane.getPrefWidth() )/2);
         gridPane.setLayoutY(( windowHeigth-gridPane.getPrefHeight() )/2);
-
-        images = new Image[board.getLength()][board.getHeight()];
 
         this.draw();
 
@@ -110,22 +103,13 @@ public class Controller implements Observer {
     }
 
     private void updateDisplay(Position oldPos, Position newPos) {
+        ImageView oldIm = getImageView(board.getAgent(newPos).getImg());
         gridPane.add(this.getImageView(defaultImg), oldPos.getX(), oldPos.getY());
-        gridPane.add(this.getImageView("etoile.jpg"), newPos.getX(), newPos.getY());
+        gridPane.add(oldIm, newPos.getX(), newPos.getY());
+
     }
 
     public void stop(){
         board.stop();
-    }
-
-    class modif {
-        public int line, column;
-        public boolean action;
-
-        public modif(int px, int py, boolean a) {
-            line = px;
-            column = py;
-            action = a;
-        }
     }
 }
