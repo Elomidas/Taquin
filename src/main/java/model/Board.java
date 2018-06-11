@@ -106,6 +106,7 @@ public class Board extends Observable {
     }
 
     public void start() {
+        Agent.setRunnable(true);
         for(Agent agent : agents) {
             agent.start();
         }
