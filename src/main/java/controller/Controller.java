@@ -34,7 +34,6 @@ public class Controller implements Observer {
     public Controller() {
         board = new Board(5,5);
         board.add(0,0, 4,4, "etoile.jpg");
-        //board.add(2,2, 3,3, "etoile.jpg");
     }
 
     @FXML

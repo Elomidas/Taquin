@@ -42,7 +42,6 @@ public class Graph {
     }
 
     public static synchronized void setFree(Position pos, boolean free) {
-        System.out.println(pos);
         nodes[pos.getX()][pos.getY()].setFree(free);
     }
 
@@ -51,6 +50,14 @@ public class Graph {
     }
 
     public static synchronized List<direction> AstarSearch(Position src, Position end, int agentId) {
+        return AstarSearch(src, end, agentId, false);
+    }
+
+    public static synchronized List<direction> AstarSearchGhost(Position src, Position end, int agentId) {
+        return AstarSearch(src, end, agentId, true);
+    }
+
+    private static synchronized List<direction> AstarSearch(Position src, Position end, int agentId, boolean ghost) {
         Node source = nodes[src.getX()][src.getY()];
         Node goal = nodes[end.getX()][end.getY()];
         source.setHVal(computeDist(src, end), agentId);
@@ -84,49 +91,55 @@ public class Graph {
             //check every child of current node
             for(Edge e : current.adjacencies) {
                 Node child = e.target;
-                child.setHVal(computeDist(child.pos, end), agentId);
-                int cost = e.cost;
-                int temp_g_scores = current.g_scores + cost;
-                int temp_f_scores = temp_g_scores + child.h_scores.get(agentId);
+                if(child.free || ghost) {
+                    child.setHVal(computeDist(child.pos, end), agentId);
+                    int cost = e.cost;
+                    int temp_g_scores = current.g_scores + cost;
+                    int temp_f_scores = temp_g_scores + child.h_scores.get(agentId);
 
-                /* If it's the first time we explore the child
-                 * or we have a better score than previously
-                 */
-                if((!explored.contains(child)) ||
-                        (temp_f_scores < child.f_scores)) {
+                    /* If it's the first time we explore the child
+                     * or we have a better score than previously
+                     */
+                    if ((!explored.contains(child)) ||
+                            (temp_f_scores < child.f_scores)) {
 
-                    child.parent = current;
-                    child.g_scores = temp_g_scores;
-                    child.f_scores = temp_f_scores;
+                        child.parent = current;
+                        child.g_scores = temp_g_scores;
+                        child.f_scores = temp_f_scores;
 
-                    if(queue.contains(child)){
-                        queue.remove(child);
+                        if (queue.contains(child)) {
+                            queue.remove(child);
+                        }
+
+                        queue.add(child);
+
                     }
-
-                    queue.add(child);
-
                 }
 
             }
 
         }
 
-        //Reconstruct path
-        Stack<Node> order = new Stack<>();
-        Node current = goal;
-        do {
-            order.push(current);
-            current = current.parent;
-        } while(!current.pos.equals(src));
+        if(found) {
+            //Reconstruct path
+            Stack<Node> order = new Stack<>();
+            Node current = goal;
+            do {
+                order.push(current);
+                current = current.parent;
+            } while (!current.pos.equals(src));
 
-        List<direction> dirs = new ArrayList<>();
-        while(!order.empty()) {
-            Node tmp = order.pop();
-            dirs.add(getDir(current.pos, tmp.pos));
-            current = tmp;
+            List<direction> dirs = new ArrayList<>();
+            while (!order.empty()) {
+                Node tmp = order.pop();
+                dirs.add(getDir(current.pos, tmp.pos));
+                current = tmp;
+            }
+
+            return dirs;
+        } else {
+            return null;
         }
-
-        return dirs;
     }
 
     static private direction getDir(Position src, Position dest) {

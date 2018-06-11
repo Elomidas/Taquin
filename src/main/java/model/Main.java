@@ -32,7 +32,8 @@ public class Main extends Application {
     /**
      * Constructeur par défaut
      */
-    public Main(){
+    public Main() {
+        //Nothing here
     }
 
     @Override

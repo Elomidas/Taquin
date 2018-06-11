@@ -11,16 +11,17 @@ public class Agent extends Thread {
     private Position target;
     private int id;
     private MoveStrategy strategy;
+    private boolean ghost;
 
     private static int _id = 0;
     private static Messages _messages;
-    static boolean test = false;
+    private static boolean test = false;
 
     public String getImg() {
         return img;
     }
 
-    private static Board _board;
+    private static Board _board = null;
 
     private final String img;
 
@@ -38,6 +39,10 @@ public class Agent extends Thread {
      */
     static public Board getPlateau() {
         return _board;
+    }
+
+    static public void setRunnable(boolean runnable) {
+        test = runnable;
     }
 
     /**
@@ -72,6 +77,14 @@ public class Agent extends Thread {
      */
     public void SendMessage(int targetId, Message.performs perform, Message.actions action, Position toFree) {
         Messages.add(new Message(id, targetId, perform, action, toFree));
+    }
+
+    public void SendRequest(int targetId, Position toFree) {
+        SendMessage(targetId, Message.performs.request, Message.actions.move, toFree);
+    }
+
+    public void SendResponse(int targetId, Position toFree) {
+        SendMessage(targetId, Message.performs.response, Message.actions.move, toFree);
     }
 
     public Message RetrieveMessage() {
@@ -131,27 +144,53 @@ public class Agent extends Thread {
     @Override
     public void run() {
         test = true;
+        boolean fini = false;
         while(!_board.finish() && test) {
             //TODO
             if(goodPosition()) {
                 //TODO
-                //Wait for messages from others
+                if(!fini) {
+                    System.out.println("J'ai fini (" + getAgentId() + ")");
+                    fini = true;
+                }
+                tempo();
             } else {
+                fini = false;
                 //TODO
                 //Try to reach its target
                 List<Graph.direction> path = FindBestPath();
-                for(int i = 0; i < path.size() && test; i++) {
-                    System.out.println("Move : " + getAgentId());
+                for(int i = 0; (i < path.size()) && test; i++) {
+                    System.out.println("Move : " + getAgentId() + " (" + path.get(i) + ")");
                     Position oldPos = getPosition();
                     test = move(path.get(i));
                     Position newPos = getPosition();
                     if(!test) {
                         System.out.println(getAgentId() + " : blocked");
+                        if(!ghost) {
+                            path = FindBestPath();
+                            i = 0;
+                        } else {
+                            Position target = strategy.getNewPos(this);
+                            int agent = _board.getId(target);
+                            if(agent != -1) {
+                                SendRequest(agent, target);
+                            }
+                            while(!_board.isFree(target) && !test) {
+                                tempo();
+                                System.out.println("Waiting (" + getAgentId() + ")");
+                            }
+                        }
+                    } else {
+                        tempo();
                     }
                     _board.notifyObservers(new Position[]{oldPos, newPos});
                 }
             }
         }
+        if(!fini && goodPosition()) {
+            System.out.println("J'ai fini (" + getAgentId() + ")");
+        }
+        System.out.println(getAgentId() + " -> Fin du thread");
     }
 
     /**
@@ -162,7 +201,27 @@ public class Agent extends Thread {
         return position.equals(target);
     }
 
-    public List<Graph.direction> FindBestPath() {
-        return Graph.AstarSearch(position, target, getAgentId());
+    private List<Graph.direction> FindBestPath() {
+
+        List<Graph.direction> path = Graph.AstarSearch(position, target, getAgentId());
+        if(path != null) {
+            path = FindGhostBestPath();
+            ghost = true;
+        } else {
+            ghost = false;
+        }
+        return path;
+    }
+
+    private List<Graph.direction> FindGhostBestPath() {
+        return Graph.AstarSearchGhost(position, target, getAgentId());
+    }
+
+    private void tempo() {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

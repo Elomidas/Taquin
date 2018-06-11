@@ -49,23 +49,36 @@ public class Board extends Observable {
     }
 
     public void add(int px, int py, int tx, int ty, String img) {
+        System.out.println("Added");
         agents.add(new Agent(new Position(px, py), new Position(tx, ty), img));
     }
 
     public boolean checkPosition(Position pos) {
-        return pos.getX() >= 0
-                && pos.getX() < length
-                && pos.getY() >= 0
-                && pos.getY() < height;
+        return ((pos.getX() >= 0)
+                && (pos.getX() < length)
+                && (pos.getY() >= 0)
+                && (pos.getY() < height));
+    }
+
+    public boolean isFree(Position pos) {
+        return isFree(pos.getX(), pos.getY());
     }
 
     public boolean isFree(int x, int y) {
         return (getAgent(x, y) == null);
     }
 
+    public int getId(Position pos) {
+        return getId(pos.getX(), pos.getY());
+    }
+
     public int getId(int x, int y) {
         Agent a = getAgent(x, y);
         return (a == null) ? -1 : a.getAgentId();
+    }
+
+    public Agent getAgent(Position pos) {
+        return getAgent(pos.getX(), pos.getY());
     }
 
     public Agent getAgent(int x, int y){
@@ -100,8 +113,12 @@ public class Board extends Observable {
 
     //TODO
     public void stop(){
-        for(Agent agent : agents) {
-            agent.stop();
+        Agent.setRunnable(false);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        Agent.setRunnable(true);
     }
 }
