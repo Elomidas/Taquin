@@ -31,7 +31,7 @@ public class Controller {
 
         board = new Board(5,5);
         board.add(0,0, 4,4, "etoile.jpg");
-        board.add(2,2, 3,3, "etoile.jpg");
+        //board.add(2,2, 3,3, "etoile.jpg");
         board.start();
     }
 
