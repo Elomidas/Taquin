@@ -111,22 +111,26 @@ public class Graph {
 
         }
 
-        //Reconstruct path
-        Stack<Node> order = new Stack<>();
-        Node current = goal;
-        do {
-            order.push(current);
-            current = current.parent;
-        } while(!current.pos.equals(src));
+        if(found) {
+            //Reconstruct path
+            Stack<Node> order = new Stack<>();
+            Node current = goal;
+            do {
+                order.push(current);
+                current = current.parent;
+            } while (!current.pos.equals(src));
 
-        List<direction> dirs = new ArrayList<>();
-        while(!order.empty()) {
-            Node tmp = order.pop();
-            dirs.add(getDir(current.pos, tmp.pos));
-            current = tmp;
+            List<direction> dirs = new ArrayList<>();
+            while (!order.empty()) {
+                Node tmp = order.pop();
+                dirs.add(getDir(current.pos, tmp.pos));
+                current = tmp;
+            }
+
+            return dirs;
+        } else {
+            return null;
         }
-
-        return dirs;
     }
 
     static private direction getDir(Position src, Position dest) {
