@@ -27,6 +27,7 @@ public class Controller implements Observer {
     private static final String defaultImg = "default.jpg";
 
     private ConcurrentLinkedQueue<modif> modifs;
+    private Thread t;
 
     private Main main;
 
@@ -42,7 +43,9 @@ public class Controller implements Observer {
         board.add(0,4, 4,0, "etoile.jpg");
         board.add(0,0, 4,4, "etoile.jpg");
         board.add(4,0, 0,4, "etoile.jpg");
+        board.add(4,4, 0,0, "etoile.jpg");
         board.add(1,1, 2,2, "etoile.jpg");
+        board.add(2,1, 3,4, "etoile.jpg");
         //board.add(4,4, 0,0, "etoile.jpg");
         modifs = new ConcurrentLinkedQueue<>();
     }
@@ -83,7 +86,8 @@ public class Controller implements Observer {
     public void setMain(Main main){
         this.main = main;
         this.board.addObserver(this);
-        board.start();
+        t = new Thread(board);
+        t.start();
     }
 
     private ImageView getImageView(String name) {
@@ -97,28 +101,15 @@ public class Controller implements Observer {
     public void update(Observable observable, Object o) {
 
         Position[] positions = (Position[]) (o);
-        Position oldPos = positions[0];
-        Position newPos = positions[1];
-        /*
-        if(!newPos.equals(oldPos)) {
-            modifs.offer(new modif(oldPos.getX(), oldPos.getY(), false));
-            modifs.offer(new modif(newPos.getX(), newPos.getY(), true));
-        }
-        */
+        Position oldPos = new Position(positions[0]);
+        Position newPos = new Position(positions[1]);
         Platform.runLater(() -> {
             this.updateDisplay(oldPos, newPos);
+            board.giveToken();
         });
     }
 
     private void updateDisplay(Position oldPos, Position newPos) {
-        /*
-        while(!modifs.isEmpty()) {
-            modif m = modifs.poll();
-            if(m != null) {
-                gridPane.add(getImageView(m.action ? "etoile.jpg" : defaultImg), m.column, m.line);
-            }
-        }
-        */
         gridPane.add(this.getImageView(defaultImg), oldPos.getX(), oldPos.getY());
         gridPane.add(this.getImageView("etoile.jpg"), newPos.getX(), newPos.getY());
     }

@@ -133,6 +133,11 @@ public class Agent extends Thread {
      * @return true if agent has been moved, false else
      */
     private boolean move(Graph.direction dir) {
+        boolean token = _board.getToken();
+        while (!token) {
+            aleatempo();
+            token = _board.getToken();
+        }
         Graph.setFree(position, true);
         Position oldPos = new Position(position);
         setStrategy(StrategyFromDirection(dir));
@@ -140,9 +145,11 @@ public class Agent extends Thread {
         Graph.setFree(position, false);
         if(!result) {
             System.out.println((strategy == null) ? "Strat null" : "unable to move");
+            _board.giveToken();
         } else {
             _board.setChanged();
             _board.notifyObservers(new Position[]{oldPos, new Position(position)});
+            tempo();
         }
         return result;
     }
@@ -210,7 +217,11 @@ public class Agent extends Thread {
     }
 
     private List<Graph.direction> FindBestPath() {
-        List<Graph.direction> path = Graph.AstarSearch(position, target, getAgentId());
+        List<Graph.direction> path = null;
+        for(int i = 0; (i < 87) && (path == null); i++) {
+            aleatempo();
+            path = Graph.AstarSearch(position, target, getAgentId());
+        }
         if(path == null) {
             System.out.println(getAgentId() + " unable to find good path");
             path = FindGhostBestPath();
@@ -225,11 +236,19 @@ public class Agent extends Thread {
         return Graph.AstarSearchGhost(position, target, getAgentId());
     }
 
-    private void tempo() {
+    private void tsttempo(long tps) {
         try {
-            Thread.sleep(1000);
+            sleep(tps);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private void tempo() {
+        tsttempo(200);
+    }
+
+    private void aleatempo() {
+        tsttempo(50 + (long)(Math.random() * 200));
     }
 }

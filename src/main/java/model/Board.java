@@ -5,9 +5,10 @@ import model.path.Graph;
 import java.util.ArrayList;
 import java.util.Observable;
 
-public class Board extends Observable {
+public class Board extends Observable implements Runnable {
     private ArrayList<Agent> agents;
     private int height, length;
+    private boolean token;
 
     public Board() {
         this(5, 5);
@@ -19,6 +20,18 @@ public class Board extends Observable {
         length = sizeX;
         Graph.init(height, length);
         Agent.setPlateau(this);
+    }
+
+    public synchronized boolean getToken() {
+        if(token) {
+            token = false;
+            return true;
+        }
+        return false;
+    }
+
+    public synchronized void giveToken() {
+        token = true;
     }
 
     public Agent getAgent(int index) {
@@ -105,13 +118,6 @@ public class Board extends Observable {
         super.setChanged();
     }
 
-    public void start() {
-        Agent.setRunnable(true);
-        for(Agent agent : agents) {
-            agent.start();
-        }
-    }
-
     //TODO
     public void stop(){
         Agent.setRunnable(false);
@@ -122,4 +128,20 @@ public class Board extends Observable {
         }
         Agent.setRunnable(true);
     }
+
+    @Override
+    public void run() {
+        token = true;
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Agent.setRunnable(true);
+        for(Agent agent : agents) {
+            agent.start();
+        }
+    }
+
+
 }
