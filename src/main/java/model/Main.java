@@ -32,8 +32,8 @@ public class Main extends Application {
     /**
      * Constructeur par défaut
      */
-    public Main(){
-        controller = new Controller();
+    public Main() {
+        //Nothing here
     }
 
     @Override

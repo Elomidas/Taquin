@@ -50,6 +50,7 @@ public class Board extends Observable {
     }
 
     public void add(int px, int py, int tx, int ty, String img) {
+        System.out.println("Added");
         agents.add(new Agent(new Position(px, py), new Position(tx, ty), img));
     }
 

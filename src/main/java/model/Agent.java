@@ -20,7 +20,7 @@ public class Agent extends Thread {
         return img;
     }
 
-    private static Board _board;
+    private static Board _board = null;
 
     private final String img;
 
@@ -135,7 +135,11 @@ public class Agent extends Thread {
             //TODO
             if(goodPosition()) {
                 //TODO
-                //Wait for messages from others
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             } else {
                 //TODO
                 //Try to reach its target
@@ -147,7 +151,6 @@ public class Agent extends Thread {
                         System.out.println(getAgentId() + " : blocked");
                     }
                 }
-                FindBestPath();
             }
         }
     }
