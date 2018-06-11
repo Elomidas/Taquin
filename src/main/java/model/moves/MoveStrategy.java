@@ -2,6 +2,7 @@ package model.moves;
 
 import model.Agent;
 import model.Position;
+import model.path.Graph;
 
 public class MoveStrategy {
     private int horizontally, vertically;
@@ -41,5 +42,21 @@ public class MoveStrategy {
     public Position getNewPos(Agent agent) {
         return new Position(agent.getPosition().getX() + vertically,
                 agent.getPosition().getY() + horizontally);
+    }
+
+    static public Graph.direction getDirection(Position origin, Position target) {
+        if(origin.Manhattan(target) == 1) {
+            if(origin.getX() > target.getX()) {
+                return Graph.direction.up;
+            }
+            if(origin.getX() < target.getX()) {
+                return Graph.direction.down;
+            }
+            if(origin.getY() > target.getY()) {
+                return Graph.direction.left;
+            }
+            return Graph.direction.right;
+        }
+        return null;
     }
 }

@@ -1,5 +1,6 @@
 package model;
 
+import jdk.internal.org.objectweb.asm.Handle;
 import model.path.Graph;
 import model.moves.MoveStrategy;
 
@@ -9,7 +10,7 @@ import java.util.List;
 public class Agent extends Thread {
     private Position position;
     private Position target;
-    private int id;
+    private int id, priority;
     private MoveStrategy strategy;
     private boolean ghost;
 
@@ -55,9 +56,18 @@ public class Agent extends Thread {
         position = new Position(pos.getX(), pos.getY());
         target = new Position(targ.getX(), targ.getY());
         id = _id;
+        priority = id;
         _id++;
         strategy = null;
         this.img = img;
+    }
+
+    public void setAgentPriority(int prio) {
+        priority = prio;
+    }
+
+    public int getAgentPriority() {
+        return priority;
     }
 
     public int getAgentId() {
@@ -76,7 +86,7 @@ public class Agent extends Thread {
      * @param toFree    Position affected
      */
     public void SendMessage(int targetId, Message.performs perform, Message.actions action, Position toFree) {
-        Messages.add(new Message(id, targetId, perform, action, toFree));
+        Messages.add(new Message(id, targetId, perform, action, toFree, priority));
     }
 
     public void SendRequest(int targetId, Position toFree) {
@@ -194,14 +204,19 @@ public class Agent extends Thread {
 
     private void followDirection(List<Graph.direction> path) {
         for(int i = 0; i < path.size(); i++) {
-            Position oldPos = getPosition();
             boolean success = move(path.get(i));
-            Position newPos = getPosition();
             if (!success) {
                 System.out.println(getAgentId() + " fail");
-                if(Math.random() > 0.5) {
-                    path = FindBestPath();
-                    i = -1;
+                if(ghost) {
+                    Position next = strategy.getNewPos(this);
+                    Agent a = _board.getAgent(next);
+                    SendRequest(a.getAgentId(), next);
+                    HandleMessage();
+                } else {
+                    if (Math.random() > 0.5) {
+                        path = FindBestPath();
+                        i = -1;
+                    }
                 }
             }
             tempo();
@@ -234,6 +249,31 @@ public class Agent extends Thread {
 
     private List<Graph.direction> FindGhostBestPath() {
         return Graph.AstarSearchGhost(position, target, getAgentId());
+    }
+
+    private Message WaitMessage() {
+        Message message = RetrieveMessage();
+        while(message == null) {
+            aleatempo();
+            message = RetrieveMessage();
+        }
+        return message;
+    }
+
+    private void HandleMessage() {
+        Message message = WaitMessage();
+        switch(message.getPerform()) {
+            case request:
+                break;
+            case response:
+                Graph.direction dir = MoveStrategy.getDirection(position, message.getPosition());
+                if(dir != null) {
+                    //TODO
+                }
+                break;
+            default:
+                System.err.println("Unhandled perform : " + message.getPerform());
+        }
     }
 
     private void tsttempo(long tps) {
