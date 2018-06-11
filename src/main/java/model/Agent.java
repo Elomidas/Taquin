@@ -14,6 +14,7 @@ public class Agent extends Thread {
 
     private static int _id = 0;
     private static Messages _messages;
+    static boolean test = false;
 
     public String getImg() {
         return img;
@@ -114,7 +115,7 @@ public class Agent extends Thread {
      * @param dir Direction of the move
      * @return true if agent has been moved, false else
      */
-    protected boolean move(Graph.direction dir) {
+    private boolean move(Graph.direction dir) {
         Graph.setFree(position, true);
         setStrategy(StrategyFromDirection(dir));
         boolean result = strategy != null && strategy.move(this);
@@ -129,7 +130,8 @@ public class Agent extends Thread {
 
     @Override
     public void run() {
-        while(!_board.finish()) {
+        test = true;
+        while(!_board.finish() && test) {
             //TODO
             if(goodPosition()) {
                 //TODO
@@ -137,7 +139,14 @@ public class Agent extends Thread {
             } else {
                 //TODO
                 //Try to reach its target
-                _board.notifyObservers();
+                List<Graph.direction> path = FindBestPath();
+                for(int i = 0; i < path.size() && test; i++) {
+                    System.out.println("Move : " + getAgentId());
+                    test = move(path.get(i));
+                    if(!test) {
+                        System.out.println(getAgentId() + " : blocked");
+                    }
+                }
                 FindBestPath();
             }
         }

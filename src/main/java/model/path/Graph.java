@@ -3,7 +3,6 @@ package model.path;
 import model.Position;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Graph {
     static private Node nodes[][];
@@ -43,6 +42,7 @@ public class Graph {
     }
 
     public static synchronized void setFree(Position pos, boolean free) {
+        System.out.println(pos);
         nodes[pos.getX()][pos.getY()].setFree(free);
     }
 
@@ -145,7 +145,7 @@ public class Graph {
             return direction.right;
         }
         System.err.println("Error getDir : {" + dx + "," + dy + "}");
-        return null;
+        return direction.none;
     }
 
     static class Node {
