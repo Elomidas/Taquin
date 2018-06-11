@@ -136,8 +136,11 @@ public class Agent extends Thread {
         Graph.setFree(position, true);
         setStrategy(StrategyFromDirection(dir));
         boolean result = strategy != null && strategy.move(this);
-        Graph.setFree(position, true);
+        Graph.setFree(position, false);
         _board.setChanged();
+        if(!result) {
+            System.out.println((strategy == null) ? "Strat null" : "unable to move");
+        }
         return result;
     }
 
@@ -159,35 +162,9 @@ public class Agent extends Thread {
                 tempo();
             } else {
                 fini = false;
-                //TODO
                 //Try to reach its target
                 List<Graph.direction> path = FindBestPath();
-                for(int i = 0; (i < path.size()) && test; i++) {
-                    System.out.println("Move : " + getAgentId() + " (" + path.get(i) + ")");
-                    Position oldPos = getPosition();
-                    boolean success = move(path.get(i));
-                    Position newPos = getPosition();
-                    if(!success) {
-                        //System.out.println(getAgentId() + " : blocked");
-                        if(!ghost) {
-                            path = FindBestPath();
-                            i = 0;
-                        } else {
-                            Position target = strategy.getNewPos(this);
-                            int agent = _board.getId(target);
-                            if(agent != -1) {
-                                SendRequest(agent, target);
-                            }
-                            while(!_board.isFree(target) && test) {
-                                tempo();
-                                System.out.println("Waiting (" + getAgentId() + ")");
-                            }
-                        }
-                    } else {
-                        tempo();
-                    }
-                    _board.notifyObservers(new Position[]{oldPos, newPos});
-                }
+                followDirection(path);
             }
         }
         if(!fini && goodPosition()) {
@@ -196,13 +173,31 @@ public class Agent extends Thread {
         System.out.println(getAgentId() + " -> Fin du thread");
     }
 
-    private Message wiatingMessage() {
+    private Message waitingMessage() {
         Message message = null;
         while(test && (message == null)) {
             tempo();
             message = RetrieveMessage();
         }
         return message;
+    }
+
+    private void followDirection(List<Graph.direction> path) {
+        for(int i = 0; i < path.size(); i++) {
+            Position oldPos = getPosition();
+            boolean success = move(path.get(i));
+            Position newPos = getPosition();
+            if (!success) {
+                System.out.println(getAgentId() + " fail");
+                if(Math.random() > 0.5) {
+                    path = FindBestPath();
+                    i = -1;
+                }
+            } else {
+                _board.notifyObservers(new Position[]{oldPos, newPos});
+            }
+            tempo();
+        }
     }
 
     /**
@@ -214,9 +209,9 @@ public class Agent extends Thread {
     }
 
     private List<Graph.direction> FindBestPath() {
-
         List<Graph.direction> path = Graph.AstarSearch(position, target, getAgentId());
-        if(path != null) {
+        if(path == null) {
+            System.out.println(getAgentId() + " unable to find good path");
             path = FindGhostBestPath();
             ghost = true;
         } else {
@@ -231,7 +226,7 @@ public class Agent extends Thread {
 
     private void tempo() {
         try {
-            Thread.sleep(800);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

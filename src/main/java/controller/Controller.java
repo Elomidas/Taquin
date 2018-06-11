@@ -14,6 +14,7 @@ import model.Position;
 
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Controller implements Observer {
 
@@ -24,6 +25,8 @@ public class Controller implements Observer {
     private static double windowHeigth = 533;
 
     private static final String defaultImg = "default.jpg";
+
+    private ConcurrentLinkedQueue<modif> modifs;
 
     private Main main;
 
@@ -36,8 +39,11 @@ public class Controller implements Observer {
 
     public Controller() {
         board = new Board(5,5);
+        board.add(0,4, 4,0, "etoile.jpg");
         board.add(0,0, 4,4, "etoile.jpg");
-        board.add(0,1, 2,2, "etoile.jpg");
+        board.add(4,0, 0,4, "etoile.jpg");
+        //board.add(4,4, 0,0, "etoile.jpg");
+        modifs = new ConcurrentLinkedQueue<>();
     }
 
     @FXML
@@ -54,8 +60,6 @@ public class Controller implements Observer {
         images = new Image[board.getLength()][board.getHeight()];
 
         this.draw();
-        gridPane.setGridLinesVisible(true);
-        gridPane.setPadding(new Insets(3, 3, 3, 3));
 
     }
 
@@ -90,22 +94,37 @@ public class Controller implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
-        Platform.runLater(() -> {
-            System.out.println("test");
-            Position[] positions = (Position[]) (o);
-            Position oldPos = positions[0];
-            Position newPos = positions[1];
+        Position[] positions = (Position[]) (o);
+        Position oldPos = positions[0];
+        Position newPos = positions[1];
+        if(!newPos.equals(oldPos)) {
+            modifs.offer(new modif(oldPos.getX(), oldPos.getY(), false));
+            modifs.offer(new modif(newPos.getX(), newPos.getY(), true));
+        }
+        Platform.runLater(this::updateDisplay);
+    }
 
-            gridPane.add(getImageView(defaultImg), oldPos.getX(), oldPos.getY());
-            gridPane.add(getImageView("etoile.jpg"), newPos.getX(), newPos.getY());
-            gridPane.setPadding(new Insets(3, 3, 3, 3));
-            gridPane.setGridLinesVisible(true);
-
-            System.out.println("End Test");
-        });
+    private void updateDisplay() {
+        while(!modifs.isEmpty()) {
+            modif m = modifs.poll();
+            if(m != null) {
+                gridPane.add(getImageView(m.action ? "etoile.jpg" : defaultImg), m.column, m.line);
+            }
+        }
     }
 
     public void stop(){
         board.stop();
+    }
+
+    class modif {
+        public int line, column;
+        public boolean action;
+
+        public modif(int px, int py, boolean a) {
+            line = px;
+            column = py;
+            action = a;
+        }
     }
 }

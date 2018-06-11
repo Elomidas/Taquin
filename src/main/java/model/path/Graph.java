@@ -62,9 +62,9 @@ public class Graph {
         Node goal = nodes[end.getX()][end.getY()];
         source.setHVal(computeDist(src, end), agentId);
 
-        Set<Node> explored = new HashSet<Node>();
+        Set<Node> explored = new HashSet<>();
 
-        PriorityQueue<Node> queue = new PriorityQueue<Node>(
+        PriorityQueue<Node> queue = new PriorityQueue<>(
                 20,
                 Comparator.comparingDouble(i -> i.f_scores)
         );
@@ -76,22 +76,24 @@ public class Graph {
 
         boolean found = false;
 
-        while((!queue.isEmpty())&&(!found)){
+        while((!queue.isEmpty()) && (!found)){
 
             //the node in having the lowest f_score value
-            Node current = queue.poll();
+            Node current;
+            do {
+                current = queue.poll();
+            } while((current != null) && !current.free && !current.equals(source));
+            if(current != null) {
+                explored.add(current);
 
-            explored.add(current);
+                //goal found
+                if (current.toString().equals(goal.toString())) {
+                    found = true;
+                }
 
-            //goal found
-            if(current.toString().equals(goal.toString())) {
-                found = true;
-            }
-
-            //check every child of current node
-            for(Edge e : current.adjacencies) {
-                Node child = e.target;
-                if(child.free || ghost) {
+                //check every child of current node
+                for (Edge e : current.adjacencies) {
+                    Node child = e.target;
                     child.setHVal(computeDist(child.pos, end), agentId);
                     int cost = e.cost;
                     int temp_g_scores = current.g_scores + cost;
@@ -107,15 +109,12 @@ public class Graph {
                         child.g_scores = temp_g_scores;
                         child.f_scores = temp_f_scores;
 
-                        if (queue.contains(child)) {
-                            queue.remove(child);
-                        }
-
+                        queue.remove(child);
                         queue.add(child);
 
                     }
-                }
 
+                }
             }
 
         }
@@ -187,6 +186,18 @@ public class Graph {
 
         public void setFree(boolean f) {
             free = f;
+        }
+
+
+        @Override
+        public boolean equals(Object o) {
+            if(o == null) {
+                return false;
+            }
+            if(o instanceof Node) {
+                return ((Node) o).pos.equals(pos);
+            }
+            return false;
         }
 
     }
