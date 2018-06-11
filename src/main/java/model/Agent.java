@@ -165,7 +165,7 @@ public class Agent extends Thread {
                     boolean success = move(path.get(i));
                     Position newPos = getPosition();
                     if(!success) {
-                        System.out.println(getAgentId() + " : blocked");
+                        //System.out.println(getAgentId() + " : blocked");
                         if(!ghost) {
                             path = FindBestPath();
                             i = 0;
@@ -219,7 +219,7 @@ public class Agent extends Thread {
 
     private void tempo() {
         try {
-            Thread.sleep(500);
+            Thread.sleep(800);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

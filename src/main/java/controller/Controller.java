@@ -1,7 +1,10 @@
 package controller;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -20,7 +23,7 @@ public class Controller implements Observer {
     private static double windowWidth = 800;
     private static double windowHeigth = 533;
 
-    private static final String defaultImg = "default.png";
+    private static final String defaultImg = "default.jpg";
 
     private Main main;
 
@@ -33,8 +36,7 @@ public class Controller implements Observer {
 
     public Controller() {
         board = new Board(5,5);
-        board.add(2,2, 3,3, "etoile.jpg");
-        board.add(4,0, 0,4, "etoile.jpg");
+        board.add(0,0, 4,4, "etoile.jpg");
     }
 
     @FXML
@@ -50,40 +52,24 @@ public class Controller implements Observer {
 
         images = new Image[board.getLength()][board.getHeight()];
 
-        for(int i=0;i<board.getLength();i++){
-            gridPane.addRow(i);
-
-            for(int j = 0; j<board.getHeight(); j++){
-                gridPane.addColumn(j);
-                if(!board.isFree(i,j)){
-                    images[i][j] = new Image(board.getAgent(i,j).getImg());
-                }
-                else
-                    images[i][j] = new Image(defaultImg);
-
-                ImageView imageView = new ImageView(images[i][j]);
-                imageView.setFitWidth(gridWidth*70/100);
-                imageView.setFitHeight(gridHeight*70/100);
-                gridPane.add(imageView, j, i);
-            }
-        }
+        this.draw();
         gridPane.setGridLinesVisible(true);
+        gridPane.setPadding(new Insets(3, 3, 3, 3));
+
     }
 
     private void draw(){
-        for(int i=0;i<board.getLength();i++){
-            for(int j = 0; j<board.getHeight(); j++){
-                Image image;
-                if(!board.isFree(i,j)){
-                    image = new Image(board.getAgent(i,j).getImg());
-                }
-                else
-                    image = new Image(defaultImg);
+        for(int i=0;i<board.getLength();i++) {
 
-                ImageView imageView = new ImageView(image);
-                //imageView.setFitWidth(gridWidth);
-                //imageView.setFitHeight(gridHeight);
-                gridPane.add(imageView, j, i);
+            for(int j = 0; j<board.getHeight(); j++){
+                gridPane.addColumn(j);
+                ImageView img;
+                if(!board.isFree(i,j)){
+                    img = getImageView(board.getAgent(i,j).getImg());
+                } else {
+                    img = getImageView(defaultImg);
+                }
+                gridPane.add(img, j, i);
             }
         }
     }
@@ -94,28 +80,36 @@ public class Controller implements Observer {
         board.start();
     }
 
+    private ImageView getImageView(String name) {
+        ImageView imageView = new ImageView(name);
+        imageView.setFitWidth(gridWidth);
+        imageView.setFitHeight(gridHeight);
+        return imageView;
+    }
+
     @Override
     public void update(Observable observable, Object o) {
         Platform.runLater(() -> {
             System.out.println("test");
-            //gridPane.getChildren().clear();
             Position[] positions = (Position[]) (o);
             Position oldPos = positions[0];
             Position newPos = positions[1];
 
-            ImageView imageView = new ImageView("etoile.jpg");
-            imageView.setFitWidth(gridWidth*70/100);
-            imageView.setFitHeight(gridHeight*70/100);
+/*            int length = board.getLength(), heigth = board.getHeight();
 
-            gridPane.getChildren().remove(gridPane.getChildren().get((newPos.getY()+1) * (newPos.getX()+1)));
-            //gridPane.add(imageView, newPos.getY(), newPos.getX());
-            //gridPane.setGridLinesVisible(true);
-            //draw();
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            ObservableList<Node> children = gridPane.getChildren();
+            int oldIndex = (oldPos.getX() * length) + oldPos.getY();
+            children.set(oldIndex, getImageView(defaultImg));
+            int newIndex = (newPos.getX() * length) + newPos.getY();
+            children.set(newIndex, getImageView("etoile.jpg"));
+            */
+
+            gridPane.add(getImageView(defaultImg), oldPos.getX(), oldPos.getY());
+            gridPane.add(getImageView("etoile.jpg"), newPos.getX(), newPos.getY());
+            gridPane.setPadding(new Insets(3, 3, 3, 3));
+            gridPane.setGridLinesVisible(true);
+
+            System.out.println("End Test");
         });
     }
 
