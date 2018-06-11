@@ -134,12 +134,15 @@ public class Agent extends Thread {
      */
     private boolean move(Graph.direction dir) {
         Graph.setFree(position, true);
+        Position oldPos = new Position(position);
         setStrategy(StrategyFromDirection(dir));
         boolean result = strategy != null && strategy.move(this);
         Graph.setFree(position, false);
-        _board.setChanged();
         if(!result) {
             System.out.println((strategy == null) ? "Strat null" : "unable to move");
+        } else {
+            _board.notifyObservers(new Position[]{oldPos, new Position(position)});
+            _board.setChanged();
         }
         return result;
     }
@@ -193,8 +196,6 @@ public class Agent extends Thread {
                     path = FindBestPath();
                     i = -1;
                 }
-            } else {
-                _board.notifyObservers(new Position[]{oldPos, newPos});
             }
             tempo();
         }

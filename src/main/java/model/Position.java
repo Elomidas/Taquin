@@ -1,7 +1,5 @@
 package model;
 
-import model.path.Graph;
-
 import java.util.Objects;
 
 public class Position {
@@ -10,6 +8,10 @@ public class Position {
 
     public Position(int x, int y) {
         setPos(x, y);
+    }
+
+    public Position(Position pos) {
+        this(pos.getX(), pos.getY());
     }
 
     public int getX() {
