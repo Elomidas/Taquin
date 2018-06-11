@@ -41,6 +41,8 @@ public class Controller implements Observer {
         board = new Board(5,5);
         board.add(0,4, 4,0, "etoile.jpg");
         board.add(0,0, 4,4, "etoile.jpg");
+        board.add(4,0, 0,4, "etoile.jpg");
+        //board.add(4,4, 0,0, "etoile.jpg");
         modifs = new ConcurrentLinkedQueue<>();
     }
 

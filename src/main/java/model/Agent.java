@@ -136,7 +136,7 @@ public class Agent extends Thread {
         Graph.setFree(position, true);
         setStrategy(StrategyFromDirection(dir));
         boolean result = strategy != null && strategy.move(this);
-        Graph.setFree(position, true);
+        Graph.setFree(position, false);
         _board.setChanged();
         if(!result) {
             System.out.println((strategy == null) ? "Strat null" : "unable to move");
@@ -164,9 +164,7 @@ public class Agent extends Thread {
                 fini = false;
                 //Try to reach its target
                 List<Graph.direction> path = FindBestPath();
-                for(int i = 0; (i < path.size()) && test; i++) {
-                    i = followDirection(path, i);
-                }
+                followDirection(path);
             }
         }
         if(!fini && goodPosition()) {
@@ -184,37 +182,22 @@ public class Agent extends Thread {
         return message;
     }
 
-    private int followDirection(List<Graph.direction> path, int i) {
-        System.out.println("Move : " + getAgentId() + " (" + path.get(i) + ")");
-        Position oldPos = getPosition();
-        boolean success = move(path.get(i));
-        Position newPos = getPosition();
-        if(!success) {
-            System.out.println(getAgentId() + " fail");
-            i = redefinePath(path, i);
-        } else {
-            _board.notifyObservers(new Position[]{oldPos, newPos});
-        }
-        tempo();
-        return i;
-    }
-
-    private int redefinePath(List<Graph.direction> path, int i) {
-        if(!ghost) {
-            path = FindBestPath();
-            i = -1;
-        } else {
-            Position target = strategy.getNewPos(this);
-            int agent = _board.getId(target);
-            if(agent != -1) {
-                SendRequest(agent, target);
+    private void followDirection(List<Graph.direction> path) {
+        for(int i = 0; i < path.size(); i++) {
+            Position oldPos = getPosition();
+            boolean success = move(path.get(i));
+            Position newPos = getPosition();
+            if (!success) {
+                System.out.println(getAgentId() + " fail");
+                if(Math.random() > 0.5) {
+                    path = FindBestPath();
+                    i = -1;
+                }
+            } else {
+                _board.notifyObservers(new Position[]{oldPos, newPos});
             }
-            while(!_board.isFree(target) && test) {
-                tempo();
-                System.out.println("Waiting (" + getAgentId() + ")");
-            }
+            tempo();
         }
-        return i;
     }
 
     /**
@@ -226,7 +209,6 @@ public class Agent extends Thread {
     }
 
     private List<Graph.direction> FindBestPath() {
-
         List<Graph.direction> path = Graph.AstarSearch(position, target, getAgentId());
         if(path == null) {
             System.out.println(getAgentId() + " unable to find good path");
