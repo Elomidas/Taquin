@@ -120,6 +120,7 @@ public class Agent extends Thread {
         setStrategy(StrategyFromDirection(dir));
         boolean result = strategy != null && strategy.move(this);
         Graph.setFree(position, true);
+        _board.notifyObservers();
         return result;
     }
 
@@ -146,6 +147,7 @@ public class Agent extends Thread {
                         System.out.println(getAgentId() + " : blocked");
                     }
                 }
+                FindBestPath();
             }
         }
     }

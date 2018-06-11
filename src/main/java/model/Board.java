@@ -61,13 +61,12 @@ public class Board extends Observable {
     }
 
     public boolean isFree(int x, int y) {
-        Position position = new Position(x, y);
-        for(Agent a : agents) {
-            if(a.getPosition().equals(position)) {
-                return false;
-            }
-        }
-        return true;
+        return (getAgent(x, y) == null);
+    }
+
+    public int getId(int x, int y) {
+        Agent a = getAgent(x, y);
+        return (a == null) ? -1 : a.getAgentId();
     }
 
     public Agent getAgent(int x, int y){
@@ -92,6 +91,12 @@ public class Board extends Observable {
     public void start() {
         for(Agent agent : agents) {
             agent.start();
+        }
+    }
+
+    public void stop(){
+        for(Agent agent : agents) {
+            agent.stop();
         }
     }
 }
