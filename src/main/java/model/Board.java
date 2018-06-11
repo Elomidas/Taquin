@@ -4,7 +4,6 @@ import model.path.Graph;
 
 import java.util.ArrayList;
 import java.util.Observable;
-import java.util.Observer;
 
 public class Board extends Observable {
     private ArrayList<Agent> agents;
@@ -86,6 +85,11 @@ public class Board extends Observable {
             }
         }
         return true;
+    }
+
+    @Override
+    public void setChanged(){
+        super.setChanged();
     }
 
     public void start() {

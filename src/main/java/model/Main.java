@@ -33,7 +33,6 @@ public class Main extends Application {
      * Constructeur par défaut
      */
     public Main(){
-        controller = new Controller();
     }
 
     @Override
@@ -69,7 +68,6 @@ public class Main extends Application {
     }
 
     private void launchGame(BorderPane rootLayout, Main main){
-        //controller = new Controller_Client();
         afficherContenu(rootLayout, main, "game.fxml");
     }
 
