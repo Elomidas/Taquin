@@ -55,19 +55,31 @@ public class Board extends Observable {
     }
 
     public boolean checkPosition(Position pos) {
-        return pos.getX() >= 0
-                && pos.getX() < length
-                && pos.getY() >= 0
-                && pos.getY() < height;
+        return ((pos.getX() >= 0)
+                && (pos.getX() < length)
+                && (pos.getY() >= 0)
+                && (pos.getY() < height));
+    }
+
+    public boolean isFree(Position pos) {
+        return isFree(pos.getX(), pos.getY());
     }
 
     public boolean isFree(int x, int y) {
         return (getAgent(x, y) == null);
     }
 
+    public int getId(Position pos) {
+        return getId(pos.getX(), pos.getY());
+    }
+
     public int getId(int x, int y) {
         Agent a = getAgent(x, y);
         return (a == null) ? -1 : a.getAgentId();
+    }
+
+    public Agent getAgent(Position pos) {
+        return getAgent(pos.getX(), pos.getY());
     }
 
     public Agent getAgent(int x, int y){

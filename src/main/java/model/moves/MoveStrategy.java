@@ -26,11 +26,17 @@ public class MoveStrategy {
      * @return true if agent has been moved, false else
      */
     public boolean move(Agent agent) {
-        Position newPos = new Position(agent.getPosition().getX() + horizontally, agent.getPosition().getY() + vertically);
-        if(Agent.getPlateau().checkPosition(newPos) && Agent.getPlateau().isFree(newPos.getX(), newPos.getY())) {
+        Position newPos = getNewPos(agent);
+        if(Agent.getPlateau().checkPosition(newPos)
+                && Agent.getPlateau().isFree(newPos.getX(), newPos.getY())) {
             agent.setPosition(newPos);
             return true;
         }
         return false;
+    }
+
+    public Position getNewPos(Agent agent) {
+        return new Position(agent.getPosition().getX() + horizontally,
+                agent.getPosition().getY() + vertically);
     }
 }

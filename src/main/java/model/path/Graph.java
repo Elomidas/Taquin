@@ -51,6 +51,14 @@ public class Graph {
     }
 
     public static synchronized List<direction> AstarSearch(Position src, Position end, int agentId) {
+        return AstarSearch(src, end, agentId, false);
+    }
+
+    public static synchronized List<direction> AstarSearchGhost(Position src, Position end, int agentId) {
+        return AstarSearch(src, end, agentId, true);
+    }
+
+    private static synchronized List<direction> AstarSearch(Position src, Position end, int agentId, boolean ghost) {
         Node source = nodes[src.getX()][src.getY()];
         Node goal = nodes[end.getX()][end.getY()];
         source.setHVal(computeDist(src, end), agentId);
@@ -84,27 +92,29 @@ public class Graph {
             //check every child of current node
             for(Edge e : current.adjacencies) {
                 Node child = e.target;
-                child.setHVal(computeDist(child.pos, end), agentId);
-                int cost = e.cost;
-                int temp_g_scores = current.g_scores + cost;
-                int temp_f_scores = temp_g_scores + child.h_scores.get(agentId);
+                if(child.free || ghost) {
+                    child.setHVal(computeDist(child.pos, end), agentId);
+                    int cost = e.cost;
+                    int temp_g_scores = current.g_scores + cost;
+                    int temp_f_scores = temp_g_scores + child.h_scores.get(agentId);
 
-                /* If it's the first time we explore the child
-                 * or we have a better score than previously
-                 */
-                if((!explored.contains(child)) ||
-                        (temp_f_scores < child.f_scores)) {
+                    /* If it's the first time we explore the child
+                     * or we have a better score than previously
+                     */
+                    if ((!explored.contains(child)) ||
+                            (temp_f_scores < child.f_scores)) {
 
-                    child.parent = current;
-                    child.g_scores = temp_g_scores;
-                    child.f_scores = temp_f_scores;
+                        child.parent = current;
+                        child.g_scores = temp_g_scores;
+                        child.f_scores = temp_f_scores;
 
-                    if(queue.contains(child)){
-                        queue.remove(child);
+                        if (queue.contains(child)) {
+                            queue.remove(child);
+                        }
+
+                        queue.add(child);
+
                     }
-
-                    queue.add(child);
-
                 }
 
             }

@@ -6,7 +6,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import model.Board;
 import model.Main;
-import model.Position;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -36,8 +35,7 @@ public class Controller implements Observer {
 
         board = new Board(5,5);
         board.add(0,0, 4,4, "etoile.jpg");
-        //board.add(2,2, 3,3, "etoile.jpg");
-        board.start();
+        board.add(2,2, 3,3, "etoile.jpg");
     }
 
     @FXML
@@ -76,6 +74,7 @@ public class Controller implements Observer {
     public void setMain(Main main){
         this.main = main;
         this.board.addObserver(this);
+        board.start();
     }
 
     @Override
