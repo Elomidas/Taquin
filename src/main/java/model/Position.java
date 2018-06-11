@@ -63,4 +63,8 @@ public class Position {
                 .append("]");
         return builder.toString();
     }
+
+    public int Manhattan(Position pos) {
+        return (Math.abs(px - pos.getX())) + Math.abs(py - pos.getY());
+    }
 }

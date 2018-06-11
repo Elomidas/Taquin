@@ -103,10 +103,9 @@ public class Controller implements Observer {
     }
 
     private void updateDisplay(Position oldPos, Position newPos) {
-        ImageView oldIm = getImageView(board.getAgent(newPos).getImg());
-        gridPane.add(this.getImageView(defaultImg), oldPos.getX(), oldPos.getY());
-        gridPane.add(oldIm, newPos.getX(), newPos.getY());
-
+        ImageView newImg = getImageView(board.getAgent(newPos).getImg());
+        gridPane.add(this.getImageView(defaultImg), oldPos.getY(), oldPos.getX());
+        gridPane.add(newImg, newPos.getY(), newPos.getX());
     }
 
     public void stop(){

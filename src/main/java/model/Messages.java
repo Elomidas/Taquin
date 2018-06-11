@@ -1,6 +1,8 @@
 package model;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -10,7 +12,9 @@ public class Messages {
 
     static private void checkId(int id) {
         if(!messages.containsKey(id)) {
-            messages.put(id, new LinkedBlockingQueue<>());
+            messages.put(id, new PriorityQueue<>(
+                    20,
+                    Comparator.comparingInt(Message::getPriority)));
         }
     }
 
