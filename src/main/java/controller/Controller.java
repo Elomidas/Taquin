@@ -37,6 +37,7 @@ public class Controller implements Observer {
     public Controller() {
         board = new Board(5,5);
         board.add(0,0, 4,4, "etoile.jpg");
+        board.add(0,1, 2,2, "etoile.jpg");
     }
 
     @FXML
@@ -94,15 +95,6 @@ public class Controller implements Observer {
             Position[] positions = (Position[]) (o);
             Position oldPos = positions[0];
             Position newPos = positions[1];
-
-/*            int length = board.getLength(), heigth = board.getHeight();
-
-            ObservableList<Node> children = gridPane.getChildren();
-            int oldIndex = (oldPos.getX() * length) + oldPos.getY();
-            children.set(oldIndex, getImageView(defaultImg));
-            int newIndex = (newPos.getX() * length) + newPos.getY();
-            children.set(newIndex, getImageView("etoile.jpg"));
-            */
 
             gridPane.add(getImageView(defaultImg), oldPos.getX(), oldPos.getY());
             gridPane.add(getImageView("etoile.jpg"), newPos.getX(), newPos.getY());
