@@ -161,8 +161,8 @@ public class Agent extends Thread {
                 List<Graph.direction> path = FindBestPath();
                 for(int i = 0; (i < path.size()) && test; i++) {
                     System.out.println("Move : " + getAgentId() + " (" + path.get(i) + ")");
-                    test = move(path.get(i));
-                    if(!test) {
+                    boolean success = move(path.get(i));
+                    if(!success) {
                         System.out.println(getAgentId() + " : blocked");
                         if(!ghost) {
                             path = FindBestPath();
@@ -173,7 +173,7 @@ public class Agent extends Thread {
                             if(agent != -1) {
                                 SendRequest(agent, target);
                             }
-                            while(!_board.isFree(target) && !test) {
+                            while(!_board.isFree(target) && test) {
                                 tempo();
                                 System.out.println("Waiting (" + getAgentId() + ")");
                             }
