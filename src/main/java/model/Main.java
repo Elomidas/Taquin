@@ -69,7 +69,6 @@ public class Main extends Application {
     }
 
     private void launchGame(BorderPane rootLayout, Main main){
-        //controller = new Controller_Client();
         afficherContenu(rootLayout, main, "game.fxml");
     }
 

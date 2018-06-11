@@ -133,7 +133,7 @@ public class Agent extends Thread {
         setStrategy(StrategyFromDirection(dir));
         boolean result = strategy != null && strategy.move(this);
         Graph.setFree(position, true);
-        _board.notifyObservers();
+        _board.setChanged();
         return result;
     }
 
@@ -161,7 +161,9 @@ public class Agent extends Thread {
                 List<Graph.direction> path = FindBestPath();
                 for(int i = 0; (i < path.size()) && test; i++) {
                     System.out.println("Move : " + getAgentId() + " (" + path.get(i) + ")");
+                    Position oldPos = getPosition();
                     boolean success = move(path.get(i));
+                    Position newPos = getPosition();
                     if(!success) {
                         System.out.println(getAgentId() + " : blocked");
                         if(!ghost) {
@@ -181,6 +183,7 @@ public class Agent extends Thread {
                     } else {
                         tempo();
                     }
+                    _board.notifyObservers(new Position[]{oldPos, newPos});
                 }
             }
         }
