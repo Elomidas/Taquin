@@ -189,10 +189,11 @@ public class Agent extends Thread {
         Position oldPos = getPosition();
         boolean success = move(path.get(i));
         Position newPos = getPosition();
-        _board.notifyObservers(new Position[]{oldPos, newPos});
         if(!success) {
             System.out.println(getAgentId() + " fail");
             i = redefinePath(path, i);
+        } else {
+            _board.notifyObservers(new Position[]{oldPos, newPos});
         }
         tempo();
         return i;
