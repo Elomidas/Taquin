@@ -7,13 +7,12 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import model.Board;
 import model.Main;
-import model.Position;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SettingsController extends Controller {
 
+    /**
+     * Objets FXML
+     */
     @FXML
     private Spinner<Integer> spinnerSize;
 
@@ -23,10 +22,17 @@ public class SettingsController extends Controller {
     @FXML
     private Button launch;
 
+    /**
+     * Constructeur par défaut
+     */
     public SettingsController(){
         //Nothing
     }
 
+    /**
+     * Fonction d'initialisation de notre fenêtre
+     * Initialisation de nos spinners
+     */
     @FXML
     private void initialize(){
 
@@ -43,6 +49,9 @@ public class SettingsController extends Controller {
 
     }
 
+    /**
+     * Lancement du jeu
+     */
     private void launchGame(){
         Platform.runLater(() -> {
             // Creation du board
@@ -58,12 +67,20 @@ public class SettingsController extends Controller {
         });
     }
 
+    /**
+     * Méthode setMain() redéfinie
+     * @param main
+     * @param board
+     */
     @Override
     public void setMain(Main main, Board board) {
         super.main = main;
         launch.setOnMouseClicked(MouseEvent -> launchGame());
     }
 
+    /**
+     * Méthode stop() redéfinie
+     */
     @Override
     public void stop() {
         //Nothing atm

@@ -4,7 +4,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -18,31 +17,44 @@ import java.util.Observer;
 
 public class GameController extends Controller implements Observer {
 
+    /**
+     * Paramètres sur notre fenêtre
+     */
     private static final double gridWidth = 50;
     private static final double gridHeight = 50;
 
     private static final double windowWidth = 800;
     private static final double windowHeigth = 533;
 
-    private static final String defaultImg = "default.jpg";
-
     /**
      * Thread utilisé pour gérer le board
      */
     private Thread t;
 
+    /**
+     * Objet FXML
+     */
     @FXML
     private GridPane gridPane;
 
+    /**
+     * Constructeur par défaut
+     */
     public GameController() {
         //Nothing
     }
 
+    /**
+     * Fonction d'initialisation du FXML, pas utilisée ici
+     */
     @FXML
     private void initialize(){
         //Nothing
     }
 
+    /**
+     * Fonction qui dessine notre grille
+     */
     private void draw(){
         for(int i=0;i<board.getLength();i++) {
 
@@ -59,6 +71,9 @@ public class GameController extends Controller implements Observer {
         }
     }
 
+    /**
+     * Fonction d'initialisation appelée dans setMain()
+     */
     private void init(){
 
         gridPane.getChildren().clear();
@@ -72,6 +87,11 @@ public class GameController extends Controller implements Observer {
         this.draw();
     }
 
+    /**
+     * Redéfinition de setMain()
+     * @param main
+     * @param board
+     */
     public void setMain(Main main, Board board){
         super.main = main;
         super.board = board;
@@ -81,6 +101,11 @@ public class GameController extends Controller implements Observer {
         t.start();
     }
 
+    /**
+     * Nous retourne un objet FXML Rectangle composé d'une chaine de caractère
+     * @param content
+     * @return
+     */
     private StackPane getRectangle(String content){
         Label label = new Label(content);
         Rectangle rectangle = new Rectangle();
@@ -91,6 +116,11 @@ public class GameController extends Controller implements Observer {
         return new StackPane(rectangle, label);
     }
 
+    /**
+     * Met à jour notre plateau lors du mouvement d'un agent
+     * @param observable
+     * @param o
+     */
     @Override
     public void update(Observable observable, Object o) {
 
@@ -103,6 +133,11 @@ public class GameController extends Controller implements Observer {
         });
     }
 
+    /**
+     * Met à jour notre fenêtre
+     * @param oldPos
+     * @param newPos
+     */
     private void updateDisplay(Position oldPos, Position newPos) {
         StackPane newStackPane = getRectangle(board.getAgent(newPos).getAgentId() + "");
         gridPane.add(this.getRectangle(""), oldPos.getY(), oldPos.getX());
@@ -115,6 +150,9 @@ public class GameController extends Controller implements Observer {
         }
     }
 
+    /**
+     * Méthode stop() redéfinie
+     */
     public void stop(){
         board.stop();
     }
