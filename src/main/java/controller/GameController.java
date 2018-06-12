@@ -2,8 +2,13 @@ package controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import model.Board;
 import model.Main;
 import model.Position;
@@ -43,13 +48,13 @@ public class GameController extends Controller implements Observer {
 
             for(int j = 0; j<board.getHeight(); j++){
                 gridPane.addColumn(j);
-                ImageView img;
+                StackPane stackPane;
                 if(!board.isFree(i,j)){
-                    img = getImageView(board.getAgent(i,j).getImg());
+                    stackPane = getRectangle(board.getAgent(i, j).getAgentId() + "");
                 } else {
-                    img = getImageView(defaultImg);
+                    stackPane = getRectangle("");
                 }
-                gridPane.add(img, j, i);
+                gridPane.add(stackPane, j, i);
             }
         }
     }
@@ -76,11 +81,14 @@ public class GameController extends Controller implements Observer {
         t.start();
     }
 
-    private ImageView getImageView(String name) {
-        ImageView imageView = new ImageView(name);
-        imageView.setFitWidth(gridWidth);
-        imageView.setFitHeight(gridHeight);
-        return imageView;
+    private StackPane getRectangle(String content){
+        Label label = new Label(content);
+        Rectangle rectangle = new Rectangle();
+        rectangle.setWidth(gridWidth);
+        rectangle.setHeight(gridHeight);
+        rectangle.setStroke(Color.BLACK);
+        rectangle.setFill(Color.WHITE);
+        return new StackPane(rectangle, label);
     }
 
     @Override
@@ -96,9 +104,15 @@ public class GameController extends Controller implements Observer {
     }
 
     private void updateDisplay(Position oldPos, Position newPos) {
-        ImageView newImg = getImageView(board.getAgent(newPos).getImg());
-        gridPane.add(this.getImageView(defaultImg), oldPos.getY(), oldPos.getX());
-        gridPane.add(newImg, newPos.getY(), newPos.getX());
+        StackPane newStackPane = getRectangle(board.getAgent(newPos).getAgentId() + "");
+        gridPane.add(this.getRectangle(""), oldPos.getY(), oldPos.getX());
+        gridPane.add(newStackPane, newPos.getY(), newPos.getX());
+        if(board.finish()){
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Taquin résolu !");
+            alert.setContentText("Tous les agents ont rejoint leurs places.");
+            alert.show();
+        }
     }
 
     public void stop(){
