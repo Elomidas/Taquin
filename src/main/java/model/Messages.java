@@ -11,7 +11,7 @@ public class Messages {
     static private HashMap<Integer, HashMap<Message.performs, Queue<Message>>> messages = new HashMap<>();
     static private HashMap<Integer, Boolean> blocked = new HashMap<>();
 
-    static public boolean blocked(int id) {
+    static public synchronized boolean blocked(int id) {
         checkId(id);
         return blocked.get(id);
     }
@@ -51,19 +51,19 @@ public class Messages {
      * @param agent Agent for which is the message
      * @return Agent's next message or null if there isn't any
      */
-    static public Message getNextRequest(Agent agent) {
+    static public synchronized Message getNextRequest(Agent agent) {
         Message m = getNextMessage(agent, Message.performs.request);
         blocked.put(agent.getAgentId(), m != null);
         return m;
     }
 
-    static public Message getNextResponse(Agent agent) {
+    static public synchronized Message getNextResponse(Agent agent) {
         Message m = getNextMessage(agent, Message.performs.response);
         blocked.put(agent.getAgentId(), m == null);
         return m;
     }
 
-    static private synchronized  Message getNextMessage(Agent agent, Message.performs perform) {
+    static private Message getNextMessage(Agent agent, Message.performs perform) {
         checkId(agent.getAgentId());
         return messages.get(agent.getAgentId()).get(perform).poll();
     }

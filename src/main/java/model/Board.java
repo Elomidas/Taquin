@@ -1,8 +1,6 @@
 package model;
 
 import javafx.application.Platform;
-import javafx.geometry.Pos;
-import javafx.util.Pair;
 import model.path.Graph;
 
 import java.util.*;
@@ -81,7 +79,6 @@ public class Board extends Observable implements Runnable {
     }
 
     public void add() {
-        System.out.println("Added");
         int start = (int)Math.floor(Math.random() * posStart.size()),
                 end = (int)Math.floor(Math.random() * posEnd.size());
         Position pStart = posStart.get(start),
@@ -160,13 +157,10 @@ public class Board extends Observable implements Runnable {
 
     public synchronized  void updateCurrentPriority() {
         Platform.runLater(() -> {
+            //Recherche de la case la plus prioritaire non satisfaite
             int mini = length * height;
             Set<Integer> set = priorityValue.keySet();
             for(int currentPrio : set) {
-                //
-                /*if(!agent.goodPosition() && (agent.getAgentPriority() < mini)) {
-                    mini = agent.getAgentPriority();
-                }*/
                 Position tmp = priorityValue.get(currentPrio);
                 if((getGoal(tmp) != null) || (getAgent(tmp) != null)) {
                     Agent a = getAgent(tmp);
@@ -177,6 +171,10 @@ public class Board extends Observable implements Runnable {
                     }
                 }
             }
+            //On demande aux agents de libérer les case prioritaires non occupées
+            Position p = null;
+
+            //Changement de la priorité
             if(currentPriority != mini) {
                 System.out.println("###\n# Priority : " + currentPriority + " => " + mini + "\n###");
                 currentPriority = mini;
@@ -220,6 +218,14 @@ public class Board extends Observable implements Runnable {
         token = true;
         computePriority();
         updateCurrentPriority();
+        StringBuilder str = new StringBuilder();
+        for(int i = 0; i < height; i++) {
+            for(int j = 0; j < length; j++) {
+                str.append(String.format("%02d  ", priorityPos.get(new Position(i, j))));
+            }
+            str.append("\n");
+        }
+        System.out.println(str.toString());
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -232,81 +238,61 @@ public class Board extends Observable implements Runnable {
     }
 
     private void computePriority() {
-        Graph.direction order[] = new Graph.direction[] {Graph.direction.up, Graph.direction.right, Graph.direction.down, Graph.direction.left};
-        boolean[][] tab = new boolean[height][length];
-        List<Position> visited = new ArrayList<>();
-        bestBlank = new Position(0, 0);
-        Position center = new Position(height / 2, length / 2);
-        int score = 0;
-        for(int i = 0; i < height; i++) {
-            for(int j = 0; j < length; j++) {
-                tab[i][j] = true;
-                Position p = new Position(i, j);
-                if(!visited.contains(p)) {
-                    if(getAgent(p) == null) {
-                        Set<Position> result = inspect(p);
-                        if(result.size() > score) {
-                            score = result.size();
-                            int manhattan = height * length;
-                            for(Position pos : result) {
-                                int m = center.Manhattan(pos);
-                                if(m < manhattan) {
-                                    manhattan = m;
-                                    bestBlank = pos;
-                                }
-                            }
-                        }
-                        visited.addAll(result);
-                    } else {
-                        visited.add(p);
-                    }
-                }
-            }
-        }
-        visited = new ArrayList<>();
-        int priority = height * length, sense = 0;
-        Position current = new Position(bestBlank);
-        while(current != null) {
-            Agent a = getGoal(current);
-            tab[current.getX()][current.getY()] = false;
-            if(a != null) {
-                a.setAgentPriority(priority);
-            }
-            priorityValue.put(priority, current);
-            priorityPos.put(current, priority);
-            priority--;
-            visited.add(current);
-            int nsense = nextSense(sense);
-            Position next = getPosition(current, order[nsense]);
-            if((next == null) || visited.contains(next)) {
-                next = getPosition(current, order[sense]);
-                if((next == null) || visited.contains(next)) {
-                    sense = nextSense(nsense);
-                    next = getPosition(current, order[sense]);
-                    if(visited.contains(next)) {
-                        next = null;
-                    }
-                }
-            }
-            current = next;
-        }
-        for(int i = 0; i < height; i++) {
-            for (int j = 0; j < length; j++) {
-                if(tab[i][j]) {
-                    Agent a = getGoal(new Position(i, j));
-                    if(a != null) {
-                        a.setAgentPriority(priority);
-                        priority--;
-                    }
-                    tab[i][j] = false;
-                }
+        int priority = height * length;
+        int iMin = 0,
+                iMax = height -1,
+                jMin = 0,
+                jMax = length - 1;
+        for(int i = iMin, j = jMin, di = 0, dj = 1;
+            (iMax >= iMin) && (jMax >= jMin);
+            j += dj, i += di) {
+            System.out.println(new Position(i, j));
+            priority = prio(i, j, priority);
+            if((di == 1) && (i == iMax)) {
+                di = 0;
+                dj = -1;
+                jMax--;
+            } else if((di == -1) && (i == iMin)) {
+                di = 0;
+                dj = 1;
+                jMin++;
+            } else if((dj == 1) && (j == jMax)) {
+                dj = 0;
+                di = 1;
+                iMin++;
+            } else if((dj == -1) && (j == jMin)) {
+                dj = 0;
+                di = -1;
+                iMax--;
             }
         }
         currentPriority = priority;
     }
 
-    private int nextSense(int sense) {
-        return (sense < 3) ? sense + 1 : 0;
+    private int prio(int i, int j, int prio) {
+        Position p = new Position(i, j);
+        Agent a = getGoal(p);
+        if(a != null) {
+            a.setAgentPriority(prio);
+        }
+        priorityValue.put(prio, p);
+        priorityPos.put(p, prio);
+        return prio - 1;
+    }
+
+    private boolean XOR(boolean a, boolean b) {
+        return (a || b) && !(a && b);
+    }
+
+    private int modifSense(int sense, int modif) {
+        int nsense = sense + modif;
+        while(nsense < 0) {
+            nsense += 4;
+        }
+        while(nsense > 3) {
+            nsense -= 4;
+        }
+        return nsense;
     }
 
     private Position getPosition(Position p, Graph.direction order) {
