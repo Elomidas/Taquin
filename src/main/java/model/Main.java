@@ -1,7 +1,6 @@
 package model;
 
 import controller.Controller;
-import controller.GameController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -11,7 +10,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.Optional;
 
 
 public class Main extends Application {
@@ -42,11 +40,10 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
 
         this.primaryStage = primaryStage;
-        this.primaryStage.setTitle("Fenêtre de connexion");
+        this.primaryStage.setTitle("Fenêtre settings");
 
         initRootLayout();
 
-        //launchGame(rootLayout, this);
         launchSettings(rootLayout, this);
     }
 
@@ -71,14 +68,33 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Lance le jeu
+     * @param rootLayout
+     * @param main
+     * @param board
+     */
     private void launchGame(BorderPane rootLayout, Main main, Board board){
+        this.primaryStage.setTitle("Jeu du Taquin");
         afficherContenu(rootLayout, main, "game.fxml", board);
     }
 
+    /**
+     * Lance les settings
+     * @param rootLayout
+     * @param main
+     */
     private void launchSettings(BorderPane rootLayout, Main main) {
         afficherContenu(rootLayout, main, "settings.fxml", null);
     }
 
+    /**
+     * Affiche une vue
+     * @param rootLayout
+     * @param main
+     * @param root
+     * @param board
+     */
     private void afficherContenu(BorderPane rootLayout, Main main, String root, Board board){
         try
         {
@@ -98,6 +114,10 @@ public class Main extends Application {
     }
 
 
+    /**
+     * Main
+     * @param args
+     */
     public static void main(String[] args) {
         launch(args);
     }
@@ -110,6 +130,10 @@ public class Main extends Application {
         controller.stop();
     }
 
+    /**
+     * Changement de vue
+     * @param board
+     */
     public void startGame(Board board) {
         launchGame(rootLayout, this, board);
     }
