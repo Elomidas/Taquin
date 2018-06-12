@@ -35,7 +35,7 @@ Afin d'éviter un blocage général du système, on vérifie qu'un agent n'est p
 
 ## II - Communication
 
-Pour gérer les communications entre les agents, nous avons créé une classe `model.Messages`, regroupant la totalité des messages (représentés individuellement par la classe `model.Message`). Les messages sont triés par expéditeur (id de l'agent l'ayant envoyé) dans des `HashMap<Integer, HashMap<Message.performs, Queue<Message>>>`, par type (grâce à l'énumération `Message.performs`) dans des `HashMap<Message.performs, Queue<Message>>`, puis par priorité (grâce à la priorité de l'agent expéditeur) dans la `Queue<Message>`.
+Pour gérer les communications entre les agents, nous avons créé une classe `model.communication.Messages`, regroupant la totalité des messages (représentés individuellement par la classe `model.communication.Message`). Les messages sont triés par expéditeur (id de l'agent l'ayant envoyé) dans des `HashMap<Integer, HashMap<Message.performs, Queue<Message>>>`, par type (grâce à l'énumération `Message.performs`) dans des `HashMap<Message.performs, Queue<Message>>`, puis par priorité (grâce à la priorité de l'agent expéditeur) dans la `Queue<Message>`.
 
 Lorsqu'un agent demande à récupérer un message (en précisant s'il veut un message de type *request* ou *response*), on récupère celui qui se trouve en première position dans la queue correspondante et on le retourne.
 

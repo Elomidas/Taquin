@@ -1,8 +1,13 @@
-package model;
+package model.communication;
+
+import model.Position;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Message {
-    enum performs{request, response}
-    enum actions{move, success, failure}
+    public enum performs{request, response}
+    public enum actions{move, moveU, moveR, moveD, moveL, success, failure}
 
     private int sender;
     private int reciever;
@@ -10,6 +15,7 @@ public class Message {
     private actions action;
     private Position toFree;
     private int priority;
+    private List<Integer> previous;
 
     public Message(int send, int receive, performs perf, actions act, Position pos, int prio) {
         sender = send;
@@ -18,6 +24,20 @@ public class Message {
         action = act;
         toFree = pos;
         priority = prio;
+        previous = new ArrayList<>();
+        previous.add(sender);
+    }
+
+    public void addPrev(int id) {
+        previous.add(id);
+    }
+
+    public boolean contains(int id) {
+        return previous.contains(id);
+    }
+
+    public List<Integer> getPrevious() {
+        return previous;
     }
 
     public int getPriority() {

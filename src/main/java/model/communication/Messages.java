@@ -1,19 +1,19 @@
-package model;
+package model.communication;
+
+import model.Agent;
 
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class Messages {
 
     static private HashMap<Integer, HashMap<Message.performs, Queue<Message>>> messages = new HashMap<>();
-    static private HashMap<Integer, Boolean> blocked = new HashMap<>();
 
     static public synchronized boolean blocked(int id) {
         checkId(id);
-        return blocked.get(id);
+        return false;
     }
 
     static private void checkId(int id) {
@@ -26,9 +26,6 @@ public class Messages {
                     20,
                     Comparator.comparingInt(Message::getPriority)));
         }
-        if(!blocked.containsKey(id)) {
-            blocked.put(id, false);
-        }
     }
 
     /**
@@ -36,14 +33,10 @@ public class Messages {
      * @param message Message to add
      */
     static public synchronized void add(Message message) {
-        System.out.println("## " + message.getPerform() + " " + message.getSender() + " => " + message.getReceiver());
-        if(message.getPerform() == Message.performs.request) {
-            blocked.put(message.getSender(), true);
-        } else {
-            blocked.put(message.getSender(), false);
-        }
+        System.out.println("## " + message.getPerform() + " " + message.getSender() + " => " + message.getReceiver() + " " + message.getAction());
         checkId(message.getReceiver());
         messages.get(message.getReceiver()).get(message.getPerform()).add(message);
+        System.out.println(message.getReceiver() + " : " + messages.get(message.getReceiver()).get(message.getPerform()).size() + " waiting");
     }
 
     /**
@@ -53,13 +46,11 @@ public class Messages {
      */
     static public synchronized Message getNextRequest(Agent agent) {
         Message m = getNextMessage(agent, Message.performs.request);
-        blocked.put(agent.getAgentId(), m != null);
         return m;
     }
 
     static public synchronized Message getNextResponse(Agent agent) {
         Message m = getNextMessage(agent, Message.performs.response);
-        blocked.put(agent.getAgentId(), m == null);
         return m;
     }
 

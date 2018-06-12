@@ -68,6 +68,10 @@ public class Position {
         return (Math.abs(px - pos.getX())) + Math.abs(py - pos.getY());
     }
 
+    /**
+     *
+     * @return {top, left, bottom, right}
+     */
     public Position[] getAdjacency() {
         return new Position[] {
                 new Position(px - 1, py),

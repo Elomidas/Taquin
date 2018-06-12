@@ -99,15 +99,14 @@ public class GameController extends Controller implements Observer {
         Position newPos = new Position(positions[1]);
         Platform.runLater(() -> {
             this.updateDisplay(oldPos, newPos);
-            board.giveToken();
         });
     }
 
     private void updateDisplay(Position oldPos, Position newPos) {
-        StackPane newStackPane = getRectangle(board.getAgent(newPos).getAgentId() + "");
+        StackPane newStackPane = getRectangle(board.getAgent(newPos).getAgentId() + (board.checkCase(newPos) ? "+" : ""));
         gridPane.add(this.getRectangle(""), oldPos.getY(), oldPos.getX());
         gridPane.add(newStackPane, newPos.getY(), newPos.getX());
-        if(board.finish()){
+        if(board.finish()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Taquin résolu !");
             alert.setContentText("Tous les agents ont rejoint leurs places.");

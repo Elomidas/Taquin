@@ -1,19 +1,24 @@
 package model;
 
 import javafx.application.Platform;
+import model.communication.Message;
+import model.communication.Messages;
 import model.path.Graph;
 
 import java.util.*;
 
 public class Board extends Observable implements Runnable {
+
+    public enum corner {tl, tr, br, bl, none}
     private ArrayList<Agent> agents;
     private int height, length;
-    private boolean token;
     private List<Position> posStart, posEnd;
-    private Position bestBlank;
-    private int currentPriority, counter;
-    private HashMap<Position, Integer> priorityPos, positionWanted;
+    private int currentPriority;
+    private HashMap<Position, Integer> priorityPos;
     private HashMap<Integer, Position> priorityValue;
+
+    //TODO
+    //Centrer une case vide et refaire le taquin après
 
     public Board() {
         this(5, 5);
@@ -27,9 +32,8 @@ public class Board extends Observable implements Runnable {
         Agent.setPlateau(this);
         posStart = new ArrayList<>();
         posEnd = new ArrayList<>();
-        currentPriority = 0;
+        currentPriority = 100;
         priorityPos = new HashMap<>();
-        positionWanted = new HashMap<>();
         priorityValue = new HashMap<>();
         for(int i = 0; i < height; i++) {
             for(int j = 0; j < length; j++) {
@@ -37,18 +41,6 @@ public class Board extends Observable implements Runnable {
                 posEnd.add(new Position(i, j));
             }
         }
-    }
-
-    public synchronized boolean getToken() {
-        if(token) {
-            token = false;
-            return true;
-        }
-        return false;
-    }
-
-    public synchronized void giveToken() {
-        token = true;
     }
 
     public Agent getAgent(int index) {
@@ -85,7 +77,6 @@ public class Board extends Observable implements Runnable {
                 pEnd = posEnd.get(end);
         posStart.remove(start);
         posEnd.remove(end);
-        positionWanted.put(pEnd, agents.size());
         agents.add(new Agent(pStart, pEnd));
     }
 
@@ -137,6 +128,11 @@ public class Board extends Observable implements Runnable {
         return null;
     }
 
+    public synchronized boolean checkCase(Position pos) {
+        Agent a = getAgent(pos), g = getGoal(pos);
+        return a == g;
+    }
+
     public boolean finish() {
         for(Agent agent : agents) {
             if(!agent.goodPosition()) {
@@ -147,54 +143,43 @@ public class Board extends Observable implements Runnable {
         return true;
     }
 
-    public synchronized  int getCurrentPriority() {
-        if(counter <= 0) {
-            updateCurrentPriority();
-            counter = 100;
-        }
+    public synchronized int getCurrentPriority() {
         return currentPriority;
     }
 
-    public synchronized  void updateCurrentPriority() {
+    public synchronized int getPriority(Position p) {
+        return priorityPos.get(p);
+    }
+
+    private boolean checkMini(int mini) {
+        return (currentPriority < mini) || (currentPriority > (mini + 1));
+    }
+
+    public synchronized void updateCurrentPriority() {
         Platform.runLater(() -> {
             //Recherche de la case la plus prioritaire non satisfaite
             int mini = length * height;
             Set<Integer> set = priorityValue.keySet();
-            for(int currentPrio : set) {
+            for (int currentPrio : set) {
                 Position tmp = priorityValue.get(currentPrio);
-                if((getGoal(tmp) != null) || (getAgent(tmp) != null)) {
-                    Agent a = getAgent(tmp);
-                    if((a == null) || (!a.goodPosition())) {
-                        if(currentPrio < mini) {
+                if ((getGoal(tmp) != null) || (getAgent(tmp) != null)) {
+                    Agent a = getGoal(tmp);
+                    if ((a != null) && (!a.goodPosition())) {
+                        if ((currentPrio < mini) && (checkMini(currentPrio))) {
                             mini = currentPrio;
                         }
                     }
                 }
             }
-            //On demande aux agents de libérer les case prioritaires non occupées
-            Position p = null;
 
             //Changement de la priorité
-            if(currentPriority != mini) {
+            if(checkMini(mini)) {
                 System.out.println("###\n# Priority : " + currentPriority + " => " + mini + "\n###");
                 currentPriority = mini;
+            } else {
+                System.out.println("NOT UPDATED");
             }
         });
-    }
-
-    public synchronized Position getBestBlank() {
-        Queue<Position> queue = new PriorityQueue<>(
-                20,
-                Comparator.comparingDouble(p -> p.Manhattan(bestBlank))
-        );
-        for(int i = 0; i < height; i++) {
-            for(int j = 0; j < length; j++) {
-                if(isFree(i, j)) {
-                    queue.add(new Position(i, j));
-                }
-            }
-        }
-        return queue.poll();
     }
 
     @Override
@@ -215,19 +200,10 @@ public class Board extends Observable implements Runnable {
 
     @Override
     public void run() {
-        token = true;
         computePriority();
         updateCurrentPriority();
-        StringBuilder str = new StringBuilder();
-        for(int i = 0; i < height; i++) {
-            for(int j = 0; j < length; j++) {
-                str.append(String.format("%02d  ", priorityPos.get(new Position(i, j))));
-            }
-            str.append("\n");
-        }
-        System.out.println(str.toString());
         try {
-            Thread.sleep(2000);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -238,7 +214,7 @@ public class Board extends Observable implements Runnable {
     }
 
     private void computePriority() {
-        int priority = height * length;
+        int priority = 1;
         int iMin = 0,
                 iMax = height -1,
                 jMin = 0,
@@ -246,7 +222,6 @@ public class Board extends Observable implements Runnable {
         for(int i = iMin, j = jMin, di = 0, dj = 1;
             (iMax >= iMin) && (jMax >= jMin);
             j += dj, i += di) {
-            System.out.println(new Position(i, j));
             priority = prio(i, j, priority);
             if((di == 1) && (i == iMax)) {
                 di = 0;
@@ -266,7 +241,6 @@ public class Board extends Observable implements Runnable {
                 iMax--;
             }
         }
-        currentPriority = priority;
     }
 
     private int prio(int i, int j, int prio) {
@@ -277,7 +251,8 @@ public class Board extends Observable implements Runnable {
         }
         priorityValue.put(prio, p);
         priorityPos.put(p, prio);
-        return prio - 1;
+        Graph.setPrio(p, prio);
+        return prio + 1;
     }
 
     private boolean XOR(boolean a, boolean b) {
@@ -332,6 +307,37 @@ public class Board extends Observable implements Runnable {
             visited.add(current);
         }
         return visited;
+    }
+
+    public synchronized corner getCorner(Position position) {
+        Position positions[] = position.getAdjacency();
+        int prio = priorityPos.get(position);
+        int count = 0;
+        for(Position p : positions) {
+            if((!checkPosition(p)) || (priorityPos.get(p) < prio)) {
+                count--;
+            }
+        }
+        if(count < -2) {
+            boolean b = false, r = false;
+            if(position.getX() > ((height / 2) + (height % 2))) {
+                b = true;
+            }
+            if(position.getY() > ((length / 2) + (length % 2))) {
+                r = true;
+            }
+            if(b && r) {
+                return corner.br;
+            }
+            if(b) {
+                return corner.bl;
+            }
+            if(r) {
+                return corner.tr;
+            }
+            return corner.tl;
+        }
+        return corner.none;
     }
 
 }

@@ -42,9 +42,9 @@ public class Graph {
         }
     }
 
-    public static synchronized void setFree(Position pos, boolean free) {
+    public static synchronized void setPrio(Position pos, int prio) {
         Platform.runLater(() -> {
-            nodes[pos.getX()][pos.getY()].setFree(free);
+            nodes[pos.getX()][pos.getY()].setPrio(prio);
         });
     }
 
@@ -53,14 +53,6 @@ public class Graph {
     }
 
     public static synchronized List<direction> AstarSearch(Position src, Position end, int agentId) {
-        return AstarSearch(src, end, agentId, false);
-    }
-
-    public static synchronized List<direction> AstarSearchGhost(Position src, Position end, int agentId) {
-        return AstarSearch(src, end, agentId, true);
-    }
-
-    private static synchronized List<direction> AstarSearch(Position src, Position end, int agentId, boolean ghost) {
         Node source = nodes[src.getX()][src.getY()];
         Node goal = nodes[end.getX()][end.getY()];
         source.setHVal(computeDist(src, end), agentId);
@@ -82,10 +74,8 @@ public class Graph {
         while((!queue.isEmpty()) && (!found)){
 
             //the node in having the lowest f_score value
-            Node current;
-            do {
-                current = queue.poll();
-            } while((current != null) && !current.free && !ghost);
+            Node current = queue.poll();
+
             if(current != null) {
                 explored.add(current);
 
@@ -98,8 +88,7 @@ public class Graph {
                 for (Edge e : current.adjacencies) {
                     Node child = e.target;
                     child.setHVal(computeDist(child.pos, end), agentId);
-                    int ghostCost = child.free ? 0 : 3;
-                    int cost = e.cost + ghostCost;
+                    int cost = e.cost + (2 * child.prio);
                     int temp_g_scores = current.g_scores + cost;
                     int temp_f_scores = temp_g_scores + child.h_scores.get(agentId);
 
@@ -183,13 +172,12 @@ public class Graph {
         HashMap<Integer, Integer> h_scores;
         int f_scores = 0;
         int ghost = 0;
+        int prio = 0;
         Edge[] adjacencies;
         Node parent;
-        boolean free;
 
         Node(Position p) {
             pos = p;
-            free = true;
             h_scores = new HashMap<>();
         }
 
@@ -201,8 +189,8 @@ public class Graph {
             return pos.toString();
         }
 
-        public void setFree(boolean f) {
-            free = f;
+        public void setPrio(int p) {
+            prio = p;
         }
 
 
