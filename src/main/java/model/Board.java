@@ -14,6 +14,8 @@ public class Board extends Observable implements Runnable {
     private List<Position> posStart, posEnd;
     private Position bestBlank;
     private int currentPriority, counter;
+    private HashMap<Position, Integer> priorityPos, positionWanted;
+    private HashMap<Integer, Position> priorityValue;
 
     public Board() {
         this(5, 5);
@@ -28,6 +30,9 @@ public class Board extends Observable implements Runnable {
         posStart = new ArrayList<>();
         posEnd = new ArrayList<>();
         currentPriority = 0;
+        priorityPos = new HashMap<>();
+        positionWanted = new HashMap<>();
+        priorityValue = new HashMap<>();
         for(int i = 0; i < height; i++) {
             for(int j = 0; j < length; j++) {
                 posStart.add(new Position(i, j));
@@ -83,6 +88,7 @@ public class Board extends Observable implements Runnable {
                 pEnd = posEnd.get(end);
         posStart.remove(start);
         posEnd.remove(end);
+        positionWanted.put(pEnd, agents.size());
         agents.add(new Agent(pStart, pEnd));
     }
 
@@ -154,10 +160,21 @@ public class Board extends Observable implements Runnable {
 
     public synchronized  void updateCurrentPriority() {
         Platform.runLater(() -> {
-            int mini = agents.size();
-            for(Agent agent : agents) {
-                if(!agent.goodPosition() && (agent.getAgentPriority() < mini)) {
+            int mini = length * height;
+            Set<Integer> set = priorityValue.keySet();
+            for(int currentPrio : set) {
+                //
+                /*if(!agent.goodPosition() && (agent.getAgentPriority() < mini)) {
                     mini = agent.getAgentPriority();
+                }*/
+                Position tmp = priorityValue.get(currentPrio);
+                if((getGoal(tmp) != null) || (getAgent(tmp) != null)) {
+                    Agent a = getAgent(tmp);
+                    if((a == null) || (!a.goodPosition())) {
+                        if(currentPrio < mini) {
+                            mini = currentPrio;
+                        }
+                    }
                 }
             }
             if(currentPriority != mini) {
@@ -219,6 +236,7 @@ public class Board extends Observable implements Runnable {
         boolean[][] tab = new boolean[height][length];
         List<Position> visited = new ArrayList<>();
         bestBlank = new Position(0, 0);
+        Position center = new Position(height / 2, length / 2);
         int score = 0;
         for(int i = 0; i < height; i++) {
             for(int j = 0; j < length; j++) {
@@ -229,7 +247,14 @@ public class Board extends Observable implements Runnable {
                         Set<Position> result = inspect(p);
                         if(result.size() > score) {
                             score = result.size();
-                            bestBlank = p;
+                            int manhattan = height * length;
+                            for(Position pos : result) {
+                                int m = center.Manhattan(pos);
+                                if(m < manhattan) {
+                                    manhattan = m;
+                                    bestBlank = pos;
+                                }
+                            }
                         }
                         visited.addAll(result);
                     } else {
@@ -239,15 +264,17 @@ public class Board extends Observable implements Runnable {
             }
         }
         visited = new ArrayList<>();
-        int priority = agents.size(), sense = 0;
+        int priority = height * length, sense = 0;
         Position current = new Position(bestBlank);
         while(current != null) {
             Agent a = getGoal(current);
             tab[current.getX()][current.getY()] = false;
             if(a != null) {
                 a.setAgentPriority(priority);
-                priority--;
             }
+            priorityValue.put(priority, current);
+            priorityPos.put(current, priority);
+            priority--;
             visited.add(current);
             int nsense = nextSense(sense);
             Position next = getPosition(current, order[nsense]);
