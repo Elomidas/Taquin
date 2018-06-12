@@ -67,4 +67,13 @@ public class Position {
     public int Manhattan(Position pos) {
         return (Math.abs(px - pos.getX())) + Math.abs(py - pos.getY());
     }
+
+    public Position[] getAdjacency() {
+        return new Position[] {
+                new Position(px - 1, py),
+                new Position(px, py + 1),
+                new Position(px + 1, py),
+                new Position(px, py - 1)
+        };
+    }
 }

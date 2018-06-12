@@ -12,6 +12,7 @@ import model.Board;
 import model.Main;
 import model.Position;
 
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -26,7 +27,6 @@ public class Controller implements Observer {
 
     private static final String defaultImg = "default.jpg";
 
-    private ConcurrentLinkedQueue<modif> modifs;
     private Thread t;
 
     private Main main;
@@ -40,14 +40,18 @@ public class Controller implements Observer {
 
     public Controller() {
         board = new Board(5,5);
-        board.add(0,4, 4,0, "etoile.jpg");
-        board.add(0,0, 4,4, "etoile.jpg");
-        board.add(4,0, 0,4, "etoile.jpg");
-        board.add(4,4, 0,0, "etoile.jpg");
-        board.add(1,1, 2,2, "etoile.jpg");
-        board.add(2,1, 3,4, "etoile.jpg");
+        /*
+        board.add(0,4, 4,0, "1.jpg");
+        board.add(0,0, 4,4, "2.jpg");
+        board.add(4,0, 0,4, "3.jpg");
+        board.add(4,4, 0,0, "4.jpg");
+        board.add(1,1, 2,2, "5.jpg");
+        board.add(2,1, 3,4, "6.jpg");
+        */
         //board.add(4,4, 0,0, "etoile.jpg");
-        modifs = new ConcurrentLinkedQueue<>();
+        for(int i = 0; i < 15; i++) {
+            board.add();
+        }
     }
 
     @FXML
@@ -117,16 +121,5 @@ public class Controller implements Observer {
 
     public void stop(){
         board.stop();
-    }
-
-    class modif {
-        public int line, column;
-        public boolean action;
-
-        public modif(int px, int py, boolean a) {
-            line = px;
-            column = py;
-            action = a;
-        }
     }
 }
