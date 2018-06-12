@@ -2,7 +2,7 @@ package model;
 
 public class Message {
     enum performs{request, response}
-    enum actions{move}
+    enum actions{move, success, failure}
 
     private int sender;
     private int reciever;

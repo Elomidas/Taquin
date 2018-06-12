@@ -1,5 +1,6 @@
 package model.path;
 
+import javafx.application.Platform;
 import model.Position;
 
 import java.util.*;
@@ -42,7 +43,9 @@ public class Graph {
     }
 
     public static synchronized void setFree(Position pos, boolean free) {
-        nodes[pos.getX()][pos.getY()].setFree(free);
+        Platform.runLater(() -> {
+            nodes[pos.getX()][pos.getY()].setFree(free);
+        });
     }
 
     private static int computeDist(Position p1, Position p2) {
@@ -82,7 +85,7 @@ public class Graph {
             Node current;
             do {
                 current = queue.poll();
-            } while((current != null) && !current.free && !current.equals(source));
+            } while((current != null) && !current.free && !ghost);
             if(current != null) {
                 explored.add(current);
 
@@ -95,7 +98,8 @@ public class Graph {
                 for (Edge e : current.adjacencies) {
                     Node child = e.target;
                     child.setHVal(computeDist(child.pos, end), agentId);
-                    int cost = e.cost;
+                    int ghostCost = child.free ? 0 : 3;
+                    int cost = e.cost + ghostCost;
                     int temp_g_scores = current.g_scores + cost;
                     int temp_f_scores = temp_g_scores + child.h_scores.get(agentId);
 
@@ -141,6 +145,18 @@ public class Graph {
         }
     }
 
+    static public synchronized void ghostUp(Position p) {
+        Platform.runLater(() -> {
+            nodes[p.getX()][p.getY()].ghost += 5;
+        });
+    }
+
+    static public synchronized void ghostUp(Position p, int modif) {
+        Platform.runLater(() -> {
+            nodes[p.getX()][p.getY()].ghost += modif;
+        });
+    }
+
     static private direction getDir(Position src, Position dest) {
         int dx = src.getX() - dest.getX();
         if(dx == 1) {
@@ -166,6 +182,7 @@ public class Graph {
         int g_scores;
         HashMap<Integer, Integer> h_scores;
         int f_scores = 0;
+        int ghost = 0;
         Edge[] adjacencies;
         Node parent;
         boolean free;

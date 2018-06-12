@@ -11,9 +11,9 @@ import java.util.List;
 public class Agent extends Thread {
     private Position position;
     private Position target;
-    private int id, priority;
+    private int id, priority, tmpPriority;
     private MoveStrategy strategy;
-    private boolean ghost;
+    private int ghost;
 
     private static int _id = 1;
     private static Messages _messages;
@@ -92,7 +92,7 @@ public class Agent extends Thread {
      * @param toFree    Position affected
      */
     public void SendMessage(int targetId, Message.performs perform, Message.actions action, Position toFree) {
-        SendMessage(targetId, perform, action, toFree, priority);
+        SendMessage(targetId, perform, action, toFree, tmpPriority);
     }
 
     public void SendMessage(int targetId, Message.performs perform, Message.actions action, Position toFree, int prio) {
@@ -103,20 +103,19 @@ public class Agent extends Thread {
         SendMessage(targetId, Message.performs.request, Message.actions.move, toFree);
     }
 
-    public void SendRequest(int targetId, Position toFree, int prio) {
-        SendMessage(targetId, Message.performs.request, Message.actions.move, toFree, prio);
-    }
-
-    public void SendResponse(int targetId, Position toFree) {
-        SendMessage(targetId, Message.performs.response, Message.actions.move, toFree, 26);
+    public void SendResponse(int targetId, Position toFree, boolean success) {
+        SendMessage(targetId, Message.performs.response, success ? Message.actions.success : Message.actions.failure, toFree, tmpPriority);
     }
 
     /**
      * Get next message for this agents
      * @return The next message, null if there isn't any
      */
-    public Message RetrieveMessage() {
-        return Messages.getNext(this);
+    public Message RetrieveResponse() {
+        return Messages.getNextResponse(this);
+    }
+    public Message RetrieveRequest() {
+        return Messages.getNextRequest(this);
     }
 
     public void setPosition(Position pos) {
@@ -137,6 +136,9 @@ public class Agent extends Thread {
      * @return MoveStrategy matching the direction
      */
     private MoveStrategy StrategyFromDirection(Graph.direction dir) {
+        if(dir == null) {
+            return null;
+        }
         switch(dir) {
             case up:
                 return MoveStrategy._up;
@@ -168,7 +170,6 @@ public class Agent extends Thread {
         boolean result = strategy != null && strategy.move(this);
         Graph.setFree(position, false);
         if(!result) {
-            System.out.println((strategy == null) ? "Strat null" : "unable to move");
             _board.giveToken();
         } else {
             _board.setChanged();
@@ -178,23 +179,27 @@ public class Agent extends Thread {
         return result;
     }
 
-    protected void Compute() {
-        //TODO
+    private boolean checkPriority() {
+        return (_board.getCurrentPriority() >= getAgentPriority());
     }
 
     @Override
     public void run() {
         boolean fini = false;
+        tmpPriority = priority;
         while(!_board.finish() && test) {
-            //TODO
-            if(goodPosition()) {
-                //TODO
-                if(!fini) {
+            if(goodPosition() || !checkPriority()) {
+                if(!fini && goodPosition()) {
                     System.out.println("J'ai fini (" + getAgentId() + ")");
+                    _board.updateCurrentPriority();
                     fini = true;
+                } else if(fini && !goodPosition()) {
+                    fini = false;
+                    _board.updateCurrentPriority();
                 }
-                tempo();
+                HandleMessage(WaitRequest());
             } else {
+                System.out.println("Moving (" + getAgentId() + ")");
                 fini = false;
                 //Try to reach its target
                 List<Graph.direction> path = FindBestPath();
@@ -207,36 +212,40 @@ public class Agent extends Thread {
         System.out.println(getAgentId() + " -> Fin du thread");
     }
 
-    private Message waitingMessage() {
-        Message message = null;
-        while(test && (message == null)) {
+    private void followDirection(List<Graph.direction> path) {
+        for (int i = 0; (path != null) && (i < path.size()) && test; i++) {
+            //boolean success = move(path.get(i));
+            if (!move(path.get(i))) {
+                if (ghost > 0) {
+                    Position next = strategy.getNewPos(this);
+                    if(!pushAgent(next)) {
+                        ghost--;
+                    } else {
+                        ghost = 3;
+                    }
+                } else {
+                    path = FindBestPath();
+                    i = -1;
+                }
+            }
             tempo();
-            message = RetrieveMessage();
         }
-        return message;
     }
 
-    private void followDirection(List<Graph.direction> path) {
-        if(path != null) {
-            for (int i = 0; i < path.size(); i++) {
-                boolean success = move(path.get(i));
-                if (!success) {
-                    System.out.println(getAgentId() + " fail");
-                    if (ghost) {
-                        Position next = strategy.getNewPos(this);
-                        Agent a = _board.getAgent(next);
-                        SendRequest(a.getAgentId(), next);
-                        HandleMessage();
-                    } else {
-                        if (Math.random() > 0.5) {
-                            path = FindBestPath();
-                            i = -1;
-                        }
-                    }
-                }
-                tempo();
+    private boolean pushAgent(Position newPos) {
+        Agent a = _board.getAgent(newPos);
+        if(a != null) {
+            if(Messages.blocked(a.getAgentId())) {
+                System.out.println(">> FAMINE (" + getAgentId() + " => " + a.getAgentId() + ") <<");
+                Graph.ghostUp(a.getPosition());
+                _board.updateCurrentPriority();
+            } else {
+                SendRequest(a.getAgentId(), newPos);
+                HandleMessage(WaitResponse());
+                return true;
             }
         }
+        return false;
     }
 
     /**
@@ -248,17 +257,12 @@ public class Agent extends Thread {
     }
 
     private List<Graph.direction> FindBestPath() {
-        List<Graph.direction> path = null;
-        for(int i = 0; (i < 87) && (path == null); i++) {
-            aleatempo();
-            path = Graph.AstarSearch(position, target, getAgentId());
-        }
+        List<Graph.direction> path = Graph.AstarSearch(position,target, getAgentId());
         if(path == null) {
-            System.out.println(getAgentId() + " unable to find good path");
             path = FindGhostBestPath();
-            ghost = true;
+            ghost = 3;
         } else {
-            ghost = false;
+            ghost = 0;
         }
         return path;
     }
@@ -267,52 +271,75 @@ public class Agent extends Thread {
         return Graph.AstarSearchGhost(position, target, getAgentId());
     }
 
-    private Message WaitMessage() {
-        Message message = RetrieveMessage();
-        while(message == null) {
-            aleatempo();
-            message = RetrieveMessage();
+    private Message WaitResponse() {
+        Message message = RetrieveResponse();
+        while((message == null) && test) {
+            tempo();
+            message = RetrieveResponse();
         }
         return message;
     }
 
-    private void HandleMessage() {
-        Message message = WaitMessage();
-        switch(message.getPerform()) {
-            case request:
-                List<Position> best = new ArrayList<>(),
-                        common = new ArrayList<>(),
-                        forbidden = new ArrayList<>();
-                for(Position p : position.getAdjacency()) {
-                    if(!_board.checkPosition(p)) {
-                        forbidden.add(p);
-                    } else {
-                        Agent a = _board.getAgent(p);
-                        if (a == null) {
-                            best.add(p);
-                        } else if (a.getAgentId() == message.getSender()) {
-                            forbidden.add(p);
-                        } else {
-                            common.add(p);
+    private Message WaitRequest() {
+        Message message = RetrieveRequest();
+        while((message == null) && test && !checkPriority()) {
+            tempo();
+            message = RetrieveRequest();
+        }
+        return message;
+    }
+
+    private void HandleMessage(Message message) {
+        if(message != null) {
+            switch (message.getPerform()) {
+                case request:
+                    int prevPrio = tmpPriority;
+                    tmpPriority = message.getPriority();
+                    List<Position> best = new ArrayList<>(),
+                            common = new ArrayList<>();
+                    for (Position p : position.getAdjacency()) {
+                        if (_board.checkPosition(p)) {
+                            Agent a = _board.getAgent(p);
+                            if (a == null) {
+                                best.add(p);
+                            } else if (a.getAgentId() != message.getSender()) {
+                                common.add(p);
+                            }
                         }
                     }
-                }
-                boolean moved = false;
-                for(int i = 0; (i < best.size()) && !moved; i++) {
-                    moved = move(MoveStrategy.getDirection(position, best.get(i)));
-                }
-                for(int i = 0; (i < common.size()) && !moved; i++) {
-                    moved = move(MoveStrategy.getDirection(position, common.get(i)));
-                }
-                break;
-            case response:
-                Graph.direction dir = MoveStrategy.getDirection(position, message.getPosition());
-                if(dir != null) {
-                    move(dir);
-                }
-                break;
-            default:
-                System.err.println("Unhandled perform : " + message.getPerform());
+                    boolean moved = false;
+                    for (int i = 0; (i < best.size()) && !moved; i++) {
+                        moved = move(MoveStrategy.getDirection(position, best.get(i)));
+                    }
+                    List<Graph.direction> list = FindGhostBestPath();
+                    if(list != null) {
+                        Graph.direction dir = list.get(0);
+                        setStrategy(StrategyFromDirection(dir));
+                        Position tmp = strategy.getNewPos(this);
+                        Agent a = _board.getAgent(tmp);
+                        if(a == null) {
+                            moved = move(dir);
+                        } else if(a.getAgentId() != message.getSender()) {
+                            if(pushAgent(tmp)) {
+                                moved = move(MoveStrategy.getDirection(position, tmp));
+                            }
+                        }
+                    }
+                    SendResponse(message.getSender(), message.getPosition(), moved);
+                    tmpPriority = prevPrio;
+                    tempo();
+                    break;
+                case response:
+                    if (message.getAction() == Message.actions.success) {
+                        Graph.direction dir = MoveStrategy.getDirection(position, message.getPosition());
+                        if (dir != null) {
+                            move(dir);
+                        }
+                    }
+                    break;
+                default:
+                    System.err.println("Unhandled perform : " + message.getPerform());
+            }
         }
     }
 
@@ -325,10 +352,10 @@ public class Agent extends Thread {
     }
 
     private void tempo() {
-        tsttempo(200);
+        tsttempo(100);
     }
 
     private void aleatempo() {
-        tsttempo(50 + (long)(Math.random() * priority * 20));
+        tsttempo(100 + (long)(Math.random() * priority * 20));
     }
 }

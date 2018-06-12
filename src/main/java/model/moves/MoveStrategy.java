@@ -32,9 +32,6 @@ public class MoveStrategy {
                 && Agent.getPlateau().isFree(newPos)) {
             agent.setPosition(newPos);
             return true;
-        } else {
-            System.out.println(newPos + ", " + Agent.getPlateau().checkPosition(newPos)
-                    + ", " + Agent.getPlateau().isFree(newPos));
         }
         return false;
     }

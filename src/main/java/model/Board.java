@@ -1,5 +1,6 @@
 package model;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.util.Pair;
 import model.path.Graph;
@@ -11,6 +12,8 @@ public class Board extends Observable implements Runnable {
     private int height, length;
     private boolean token;
     private List<Position> posStart, posEnd;
+    private Position bestBlank;
+    private int currentPriority, counter;
 
     public Board() {
         this(5, 5);
@@ -24,6 +27,7 @@ public class Board extends Observable implements Runnable {
         Agent.setPlateau(this);
         posStart = new ArrayList<>();
         posEnd = new ArrayList<>();
+        currentPriority = 0;
         for(int i = 0; i < height; i++) {
             for(int j = 0; j < length; j++) {
                 posStart.add(new Position(i, j));
@@ -136,8 +140,46 @@ public class Board extends Observable implements Runnable {
                 return false;
             }
         }
-        System.out.println("### End ###");
+        System.out.println("#####\n###\n# End\n###\n#####");
         return true;
+    }
+
+    public synchronized  int getCurrentPriority() {
+        if(counter <= 0) {
+            updateCurrentPriority();
+            counter = 100;
+        }
+        return currentPriority;
+    }
+
+    public synchronized  void updateCurrentPriority() {
+        Platform.runLater(() -> {
+            int mini = agents.size();
+            for(Agent agent : agents) {
+                if(!agent.goodPosition() && (agent.getAgentPriority() < mini)) {
+                    mini = agent.getAgentPriority();
+                }
+            }
+            if(currentPriority != mini) {
+                System.out.println("###\n# Priority : " + currentPriority + " => " + mini + "\n###");
+                currentPriority = mini;
+            }
+        });
+    }
+
+    public synchronized Position getBestBlank() {
+        Queue<Position> queue = new PriorityQueue<>(
+                20,
+                Comparator.comparingDouble(p -> p.Manhattan(bestBlank))
+        );
+        for(int i = 0; i < height; i++) {
+            for(int j = 0; j < length; j++) {
+                if(isFree(i, j)) {
+                    queue.add(new Position(i, j));
+                }
+            }
+        }
+        return queue.poll();
     }
 
     @Override
@@ -160,8 +202,9 @@ public class Board extends Observable implements Runnable {
     public void run() {
         token = true;
         computePriority();
+        updateCurrentPriority();
         try {
-            Thread.sleep(1000);
+            Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -175,7 +218,7 @@ public class Board extends Observable implements Runnable {
         Graph.direction order[] = new Graph.direction[] {Graph.direction.up, Graph.direction.right, Graph.direction.down, Graph.direction.left};
         boolean[][] tab = new boolean[height][length];
         List<Position> visited = new ArrayList<>();
-        Position best = new Position(0, 0);
+        bestBlank = new Position(0, 0);
         int score = 0;
         for(int i = 0; i < height; i++) {
             for(int j = 0; j < length; j++) {
@@ -186,7 +229,7 @@ public class Board extends Observable implements Runnable {
                         Set<Position> result = inspect(p);
                         if(result.size() > score) {
                             score = result.size();
-                            best = p;
+                            bestBlank = p;
                         }
                         visited.addAll(result);
                     } else {
@@ -197,7 +240,7 @@ public class Board extends Observable implements Runnable {
         }
         visited = new ArrayList<>();
         int priority = agents.size(), sense = 0;
-        Position current = new Position(best);
+        Position current = new Position(bestBlank);
         while(current != null) {
             Agent a = getGoal(current);
             tab[current.getX()][current.getY()] = false;
@@ -232,6 +275,7 @@ public class Board extends Observable implements Runnable {
                 }
             }
         }
+        currentPriority = priority;
     }
 
     private int nextSense(int sense) {
