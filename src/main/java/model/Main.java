@@ -1,6 +1,7 @@
 package model;
 
 import controller.Controller;
+import controller.GameController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -10,6 +11,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 
 
 public class Main extends Application {
@@ -44,7 +46,8 @@ public class Main extends Application {
 
         initRootLayout();
 
-        launchGame(rootLayout, this);
+        //launchGame(rootLayout, this);
+        launchSettings(rootLayout, this);
     }
 
     /**
@@ -68,11 +71,15 @@ public class Main extends Application {
         }
     }
 
-    private void launchGame(BorderPane rootLayout, Main main){
-        afficherContenu(rootLayout, main, "game.fxml");
+    private void launchGame(BorderPane rootLayout, Main main, Board board){
+        afficherContenu(rootLayout, main, "game.fxml", board);
     }
 
-    private void afficherContenu(BorderPane rootLayout, Main main, String root){
+    private void launchSettings(BorderPane rootLayout, Main main) {
+        afficherContenu(rootLayout, main, "settings.fxml", null);
+    }
+
+    private void afficherContenu(BorderPane rootLayout, Main main, String root, Board board){
         try
         {
             FXMLLoader loader = new FXMLLoader();
@@ -80,7 +87,7 @@ public class Main extends Application {
             AnchorPane contenu = loader.load();
 
             controller = loader.getController();
-            controller.setMain(main);
+            controller.setMain(main, board);
 
             rootLayout.setCenter(contenu);
         }
@@ -101,5 +108,9 @@ public class Main extends Application {
     @Override
     public void stop(){
         controller.stop();
+    }
+
+    public void startGame(Board board) {
+        launchGame(rootLayout, this, board);
     }
 }
