@@ -1,6 +1,6 @@
 # Taquin
 
-![Exemple](https://raw.githubusercontent.com/Elomidas/Taquin/master/img/Capture.png)
+![Exemple](https://raw.githubusercontent.com/Elomidas/Taquin/master/img/Fin.png)
 
 ## Informations
 
