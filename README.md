@@ -22,16 +22,13 @@ Pour savoir dans quelle direction un agent doit se déplacer, nous avons décid�
 
 Afin de pouvoir gérer un plateau relativement rempli, nous avons donné à chaque agent une priorité dépendant de la position de son but sur le plateau. En effet, nous avons cherché "la plus grosse concentration de cases vides attendues", c'est à dire la zone sur laquelle, une fois le taquin terminée, il y aurait le plus de cases vides adjacentes. On essaye ainsi de garder cette zone pour la fin, car c'est celle dans laquelle il sera le plus facile de déplacer les derniers pions.
 
-Afin d'éviter les erreurs de synchronisation avec l'interface graphique comme on avait au début, nous avons ajouté un système de token :
-* Par défaut, le plateau a un *token*.
-* Lorsqu'un agent veut bouger, il demande le token au plateau.
-* On a alors deux possibilités :
-  * L'agent a réussi à bouger, le thread UI redonne le *token* au plateau après avoir actualisé l'affichage.
-  * L'agent n'a pas pu bougé, le *token* est rendu au plateau, aucun update de l'affichage est nécessaire.
-
-On commence par placer les pions les plus prioritaires (sur les bords, proches des angles), les moins prioritaires sont à l'écoute des messages qui leur sont envoyés, afin de faciliter le déplacement des pions prioritaires.
+On commence par placer les pions les plus prioritaires (distribution en spirale dans le sens horaire en partant de la case en haut à gauche), les moins prioritaires sont à l'écoute des messages qui leur sont envoyés, afin de faciliter le déplacement des pions prioritaires.
 
 Afin d'éviter un blocage général du système, on vérifie qu'un agent n'est pas déjà occupé avant de lui envoyer une requête de déplacement.
+
+Lorsqu'un agent reçoit une requête, il la traite (en bougeant ou en envoyant une requête à un autre agent) puis renvoi une réponse à l'emetteur de la requête reçue. Si un agent reçoit une requête demandant la libération d'une case qu'il a déjà quittée, il repond tout de suite positivement.
+
+Lorsqu'un agent emet une requête, il attend la réponse.
 
 ## II - Communication
 
@@ -74,3 +71,11 @@ De cette manière, notre grille est mise à jour en temps réel lorsqu'un agent 
 ### Ce qui fonctionne
 
 La résolution de plateau remplis à 80% fonctionne presque tout le temps, certains plateaux plus remplis peuvent être resolus mais le succès n'est pas assuré.
+
+### Ce qui peut être amélioré
+
+Traitement spécifique pour faire rentrer un agent dans un angle.
+
+### Notes
+
+Une part d'aléatoire a été ajoutée dans les déplacements ainsi que dans le temps écoulé entre les mouvement des agents, ainsi une situation qui a l'air de boucler peut se résoudre d'elle même au bout de plusieurs coups (cela peut être long).
