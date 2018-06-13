@@ -13,6 +13,7 @@ public class Agent extends Thread {
     private Position target;
     private int id, priority, tmpPriority;
     private MoveStrategy strategy;
+    private Set<contact> contacted;
 
     private static int _id = 1;
     private static boolean test = false;
@@ -46,15 +47,18 @@ public class Agent extends Thread {
      */
     public Agent(Position pos, Position targ) {
         position = null;
-        target = new Position(targ.getX(), targ.getY());
-        id = _id;
-        priority = id;
-        _id++;
+        id = -1;
+        priority = -1;
         strategy = null;
-        setPosition(new Position(pos.getX(), pos.getY()));
+        setPosition(pos);
+        setTarget(targ);
     }
 
-    public void setAgentPriority(int prio) {
+    public synchronized void setAgentId(int aid) {
+        id = aid;
+    }
+
+    public synchronized void setAgentPriority(int prio) {
         priority = prio;
     }
 
@@ -118,14 +122,20 @@ public class Agent extends Thread {
         return Messages.getNextRequest(this);
     }
 
-    public void setPosition(Position pos) {
+    public synchronized void setPosition(Position pos) {
         if(position != null) {
             Graph.setFree(position, true);
         }
-        position = pos;
-        if(position != null) {
-            Graph.setFree(position, false);
+        position = new Position(pos);
+        Graph.setFree(position, false);
+        if(goodPosition()) {
+            Graph.block(position);
         }
+        contacted = new HashSet<>();
+    }
+
+    public synchronized void setTarget(Position pos) {
+        target = new Position(pos);
     }
 
     /**
@@ -168,7 +178,6 @@ public class Agent extends Thread {
         boolean result = false;
         setStrategy(StrategyFromDirection(dir));
         if(_board.isFree(strategy.getNewPos(this))) {
-            System.out.println(String.format("%d move ", getAgentId()) + dir);
             Position oldPos = new Position(position);
             result = strategy != null && strategy.move(this);
             if (result) {
@@ -200,21 +209,10 @@ public class Agent extends Thread {
                 HandleRequest(WaitRequest());
             }
         }
-        System.out.println(getAgentId() + " -> Fin du thread");
     }
 
     private void followDirection(List<Graph.direction> path) {
         for (int i = 0; (path != null) && (i < path.size()) && test; i++) {
-            //TODO corner at begin -> path < 3
-            if((path.size() - i) == 3 && false) {
-                //Corner check
-                Board.corner corner = _board.getCorner(target);
-                if(corner != Board.corner.none) {
-                    System.out.println("Corner");
-                    path = FindBestPath();
-                    //TODO
-                }
-            }
             setStrategy(StrategyFromDirection(path.get(i)));
             boolean free = _board.isFree(strategy.getNewPos(this));
             if(free) {
@@ -222,7 +220,9 @@ public class Agent extends Thread {
             }
             if (!free) {
                 Position next = strategy.getNewPos(this);
-                pushAgent(next, null);
+                if(pushAgent(next, null)) {
+                    move(path.get(i));
+                }
             }
             tempo();
         }
@@ -231,30 +231,20 @@ public class Agent extends Thread {
     private boolean pushAgent(Position newPos, List<Integer> previous) {
         Agent a = _board.getAgent(newPos);
         if(a != null) {
-            if(Messages.blocked(a.getAgentId())) {
-                System.out.println(">> FAMINE (" + getAgentId() + " => " + a.getAgentId() + ") <<");
-                Graph.ghostUp(a.getPosition());
-                _board.updateCurrentPriority();
-            } else {
-                /**
-                 * TODO
-                 * Check if there is a message waiting
-                 */
-                //Check if there is a message
-                Message message = RetrieveRequest();
-                if(message != null) {
-                    if(message.getPosition().equals(position)) {
-                        System.out.println("FUCK");
-                    }
-                    SendResponse(message.getSender(), message.getPosition(), true);
-                }
+            //Check if there is a message
+            Message message = RetrieveRequest();
+            if(message != null) {
+                SendResponse(message.getSender(), message.getPosition(), true);
+            }
+            contact c = new contact(a);
+            if(!contacted.contains(c)) {
+                contacted.add(c);
                 SendRequest(a.getAgentId(), newPos, previous);
                 return HandleResponse(WaitResponse());
             }
-        } else {
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -273,23 +263,19 @@ public class Agent extends Thread {
     private Message WaitResponse() {
         Message message = RetrieveResponse();
         while((message == null) && test) {
-            if(checkPriority()) {
-                System.out.println(String.format("Ag%02d waiting for response", getAgentId()));
-            }
             tempo();
             message = RetrieveResponse();
         }
+        System.out.println(getAgentId() + " get response " + ((message == null) ? "*" : message.getAction()));
         return message;
     }
 
     private Message WaitRequest() {
         Message message = RetrieveRequest();
-        System.out.println(String.format("Ag%02d wait message", getAgentId()));
         while((message == null) && test && !checkPriority()) {
             tempo();
             message = RetrieveRequest();
         }
-        System.out.println(getAgentId() + " free");
         return message;
     }
 
@@ -311,10 +297,6 @@ public class Agent extends Thread {
                 }
             }
 
-            System.out.println(String.format("%d : %d poss", getAgentId(), queue.size()));
-            if(queue.size() == 0) {
-                System.out.println("Here");
-            }
             boolean moved = false;
             while (!queue.isEmpty() && !moved) {
                 Position current = queue.poll();
@@ -340,13 +322,12 @@ public class Agent extends Thread {
             if(message.getAction() == Message.actions.success) {
                 return true;
             }
-        } else {
-            System.out.println("Response missed " + getAgentId() + " (" + getAgentPriority() + ")");
         }
         return false;
     }
 
-    private void tsttempo(long tps) {
+    private void tempo() {
+        long tps = 20 + (long)(Math.random() * 80);
         try {
             sleep(tps);
         } catch (InterruptedException e) {
@@ -354,12 +335,36 @@ public class Agent extends Thread {
         }
     }
 
-    private void tempo() {
-        //tsttempo(100);
-        aleatempo();
-    }
+    class contact {
+        Position position;
+        int agentId;
 
-    private void aleatempo() {
-        tsttempo(20 + (long)(Math.random() * 20));
+        contact(Agent a) {
+            this(a.getAgentId(), a.getPosition());
+        }
+
+        contact(int id, Position p) {
+            position = new Position(p);
+            agentId = id;
+        }
+
+        @Override
+        public boolean equals(Object obj){
+            if(this == obj)
+                return true;
+            if(obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            final contact c = (contact) obj;
+            if(id != c.agentId)
+                return false;
+            return c.position.equals(position);
+        }
+
+        @Override
+        public int hashCode(){
+            return Objects.hash(agentId, position);
+        }
     }
 }

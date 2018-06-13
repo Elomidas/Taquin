@@ -1,8 +1,6 @@
 package model;
 
 import javafx.application.Platform;
-import model.communication.Message;
-import model.communication.Messages;
 import model.path.Graph;
 
 import java.util.*;
@@ -12,13 +10,11 @@ public class Board extends Observable implements Runnable {
     public enum corner {tl, tr, br, bl, none}
     private ArrayList<Agent> agents;
     private int height, length;
-    private List<Position> posStart, posEnd;
     private int currentPriority;
     private HashMap<Position, Integer> priorityPos;
     private HashMap<Integer, Position> priorityValue;
-
-    //TODO
-    //Centrer une case vide et refaire le taquin après
+    private BoardSimplifier boardSimplifier;
+    private boolean simplified;
 
     public Board() {
         this(5, 5);
@@ -30,17 +26,29 @@ public class Board extends Observable implements Runnable {
         length = sizeX;
         Graph.init(height, length);
         Agent.setPlateau(this);
-        posStart = new ArrayList<>();
-        posEnd = new ArrayList<>();
         currentPriority = 100;
         priorityPos = new HashMap<>();
         priorityValue = new HashMap<>();
-        for(int i = 0; i < height; i++) {
-            for(int j = 0; j < length; j++) {
-                posStart.add(new Position(i, j));
-                posEnd.add(new Position(i, j));
-            }
-        }
+        boardSimplifier = new BoardSimplifier();
+    }
+
+    public synchronized void Simplify() {
+        computePriority();
+        boardSimplifier.simplify(this);
+        computePriority();
+        simplified = true;
+        updateCurrentPriority();
+    }
+
+    public synchronized void Restore() {
+        boardSimplifier.restore(this);
+        computePriority();
+        simplified = false;
+        updateCurrentPriority();
+    }
+
+    public Position getCenter() {
+        return new Position(height / 2, length / 2);
     }
 
     public Agent getAgent(int index) {
@@ -70,13 +78,7 @@ public class Board extends Observable implements Runnable {
         this.length = length;
     }
 
-    public void add() {
-        int start = (int)Math.floor(Math.random() * posStart.size()),
-                end = (int)Math.floor(Math.random() * posEnd.size());
-        Position pStart = posStart.get(start),
-                pEnd = posEnd.get(end);
-        posStart.remove(start);
-        posEnd.remove(end);
+    public void add(Position pStart, Position pEnd) {
         agents.add(new Agent(pStart, pEnd));
     }
 
@@ -118,7 +120,7 @@ public class Board extends Observable implements Runnable {
         return null;
     }
 
-    private Agent getGoal(Position pos) {
+    Agent getGoal(Position pos) {
         Position position = new Position(pos.getX(), pos.getY());
         for(Agent a : agents) {
             if(a.getTarget().equals(position)) {
@@ -139,6 +141,10 @@ public class Board extends Observable implements Runnable {
                 return false;
             }
         }
+        if(simplified) {
+            Restore();
+            return false;
+        }
         System.out.println("#####\n###\n# End\n###\n#####");
         return true;
     }
@@ -152,7 +158,7 @@ public class Board extends Observable implements Runnable {
     }
 
     private boolean checkMini(int mini) {
-        return ((currentPriority < mini) || (currentPriority > (mini + 1)) && (mini < ((length * height) + 2)));
+        return ((currentPriority <= mini) || (currentPriority > (mini + 1)) && (mini < ((length * height) + 2)));
     }
 
     public synchronized void updateCurrentPriority() {
@@ -180,7 +186,6 @@ public class Board extends Observable implements Runnable {
                     if(!agent.goodPosition()) {
                         int tmp = agent.getAgentPriority();
                         if(tmp < avoidError) {
-                            System.out.println("AVOID : " + tmp);
                             avoidError = tmp;
                         }
                     }
@@ -188,23 +193,15 @@ public class Board extends Observable implements Runnable {
             }
 
             //Changement de la priorité
-            if(checkMini(mini)) {
-                System.out.println("###\n# Priority : " + currentPriority + " => " + mini + "\n###");
-                currentPriority = mini;
-            } else {
-                if(avoidError != max) {
-                    currentPriority = avoidError;
-                } else if(mini != max) {
+            if(mini != currentPriority) {
+                if (checkMini(mini)) {
+                    //System.out.println("###\n# Priority : " + currentPriority + " => " + mini + "\n###");
                     currentPriority = mini;
-                }
-            }
-
-            if(currentPriority == 27) {
-                if(finish()) {
-                    System.out.println("END !!!");
                 } else {
-                    for(Agent agent : agents) {
-                        System.out.println("## " + agent.getId() + " == " + agent.getTarget());
+                    if (avoidError != max) {
+                        currentPriority = avoidError;
+                    } else {
+                        currentPriority = mini;
                     }
                 }
             }
@@ -216,7 +213,6 @@ public class Board extends Observable implements Runnable {
         super.setChanged();
     }
 
-    //TODO
     public void stop(){
         Agent.setRunnable(false);
         try {
@@ -229,21 +225,19 @@ public class Board extends Observable implements Runnable {
 
     @Override
     public void run() {
-        computePriority();
-        updateCurrentPriority();
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Agent.setRunnable(true);
         for(Agent agent : agents) {
             agent.start();
         }
     }
 
-    private void computePriority() {
+    public void computePriority() {
         int priority = 1;
+        int id = 1;
         int iMin = 0,
                 iMax = height -1,
                 jMin = 0,
@@ -251,7 +245,24 @@ public class Board extends Observable implements Runnable {
         for(int i = iMin, j = jMin, di = 0, dj = 1;
             (iMax >= iMin) && (jMax >= jMin);
             j += dj, i += di) {
-            priority = prio(i, j, priority);
+            Position tmp = new Position(i, j);
+            Agent a = getGoal(tmp);
+            if(a != null) {
+                a.setAgentId(id);
+            }
+            id++;
+            int nx = (height - 1) - tmp.getX();
+            int ny = (length - 1) - tmp.getY();
+            for(Position position : new Position[] {
+                    tmp,
+                    new Position(tmp.getX(), ny),
+                    new Position(nx, tmp.getY()),
+                    new Position(nx, ny)
+            }) {
+                if (prio(position, priority)) {
+                    priority++;
+                }
+            }
             if((di == 1) && (i == iMax)) {
                 di = 0;
                 dj = -1;
@@ -272,8 +283,10 @@ public class Board extends Observable implements Runnable {
         }
     }
 
-    private int prio(int i, int j, int prio) {
-        Position p = new Position(i, j);
+    private boolean prio(Position p, int prio) {
+        if(priorityPos.containsKey(p)) {
+            return false;
+        }
         Agent a = getGoal(p);
         if(a != null) {
             a.setAgentPriority(prio);
@@ -281,7 +294,7 @@ public class Board extends Observable implements Runnable {
         priorityValue.put(prio, p);
         priorityPos.put(p, prio);
         Graph.setPrio(p, prio);
-        return prio + 1;
+        return true;
     }
 
     private boolean XOR(boolean a, boolean b) {
@@ -349,10 +362,10 @@ public class Board extends Observable implements Runnable {
         }
         if(count < -2) {
             boolean b = false, r = false;
-            if(position.getX() > ((height / 2) + (height % 2))) {
+            if(position.getX() > (getCenter().getX())) {
                 b = true;
             }
-            if(position.getY() > ((length / 2) + (length % 2))) {
+            if(position.getY() > (getCenter().getY())) {
                 r = true;
             }
             if(b && r) {
@@ -369,8 +382,20 @@ public class Board extends Observable implements Runnable {
         return corner.none;
     }
 
-    private void center() {
-        Position center = new Position((height / 2) + (height % 2), (length / 2) + (length % 2));
+    public void printGoal() {
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0; i < height; i++) {
+            for(int j = 0; j < length; j++) {
+                Agent a = getGoal(new Position(i, j));
+                if(a == null) {
+                    builder.append("__  ");
+                } else {
+                    builder.append(String.format("%02d  ", a.getAgentPriority()));
+                }
+            }
+            builder.append("\n");
+        }
+        System.out.println(builder.toString());
     }
 
 }

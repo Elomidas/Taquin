@@ -6,6 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import model.Board;
+import model.BoardFactory;
 import model.Main;
 
 public class SettingsController extends Controller {
@@ -43,7 +44,7 @@ public class SettingsController extends Controller {
         // Initialisation des 2 spinners
         spinnerSize.setValueFactory(valueFactory);
 
-        valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, sizeMax*sizeMax -1, 15, 1);
+        valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, sizeMax*sizeMax -1, 20, 1);
 
         spinnerAgents.setValueFactory(valueFactory);
 
@@ -55,14 +56,10 @@ public class SettingsController extends Controller {
     private void launchGame(){
         Platform.runLater(() -> {
             // Creation du board
-
             int size = spinnerSize.getValue();
-            board = new Board(size, size);
-
             int maxi = Math.min(spinnerAgents.getValue(), (size*size)-1);
-            for(int i=0;(i < maxi); i++){
-                board.add();
-            }
+
+            board = BoardFactory.getNewBoard(size, maxi);
             main.startGame(board);
         });
     }

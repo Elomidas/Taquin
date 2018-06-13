@@ -11,11 +11,6 @@ public class Messages {
 
     static private HashMap<Integer, HashMap<Message.performs, Queue<Message>>> messages = new HashMap<>();
 
-    static public synchronized boolean blocked(int id) {
-        checkId(id);
-        return false;
-    }
-
     static private void checkId(int id) {
         if(!messages.containsKey(id)) {
             messages.put(id, new HashMap<>());

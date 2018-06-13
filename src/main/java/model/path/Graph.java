@@ -76,19 +76,28 @@ public class Graph {
             //the node in having the lowest f_score value
             Node current = queue.poll();
 
-            if(current != null) {
-                explored.add(current);
+            explored.add(current);
 
-                //goal found
-                if (current.toString().equals(goal.toString())) {
-                    found = true;
+            //goal found
+            if (current.equals(goal)) {
+                found = true;
+            }
+
+            //check every child of current node
+            for (Edge e : current.adjacencies) {
+                boolean testDirect = true;
+                Node child = e.target;
+                if(current.equals(source)
+                        && !child.isFree()
+                        && child.equals(goal)) {
+                    testDirect = (Math.random() > 0.5);
                 }
-
-                //check every child of current node
-                for (Edge e : current.adjacencies) {
-                    Node child = e.target;
+                if(testDirect) {
                     child.setHVal(computeDist(child.pos, end), agentId);
-                    int cost = e.cost + (2 * child.prio) + child.free;
+                    int cost = e.cost + (2 * child.prio) + child.free + (int)(Math.random() * 40);
+                    if((child.blocked != 0) && (Math.random() > 0.5)) {
+                        cost *= child.blocked;
+                    }
                     int temp_g_scores = current.g_scores + cost;
                     int temp_f_scores = temp_g_scores + child.h_scores.get(agentId);
 
@@ -106,7 +115,6 @@ public class Graph {
                         queue.add(child);
 
                     }
-
                 }
             }
 
@@ -138,6 +146,10 @@ public class Graph {
         nodes[p.getX()][p.getY()].setFree(free);
     }
 
+    static public synchronized void block(Position p) {
+        nodes[p.getX()][p.getY()].block();
+    }
+
     static public synchronized void ghostUp(Position p) {
         Platform.runLater(() -> {
             nodes[p.getX()][p.getY()].ghost += 5;
@@ -165,7 +177,6 @@ public class Graph {
         if(dy == -1) {
             return direction.right;
         }
-        System.err.println("Error getDir : {" + dx + "," + dy + "}");
         return direction.none;
     }
 
@@ -179,16 +190,26 @@ public class Graph {
         int prio = 0;
         Edge[] adjacencies;
         Node parent;
-        int free;
+        int free, blocked;
 
         Node(Position p) {
             pos = p;
             h_scores = new HashMap<>();
             free = 0;
+            blocked = 0;
         }
 
         public void setFree(boolean fr) {
             free = fr ? 0 : 15;
+            blocked = 0;
+        }
+
+        public void block() {
+            blocked = 3;
+        }
+
+        public boolean isFree() {
+            return free == 0;
         }
 
         void setHVal(int dist, int agentId) {
