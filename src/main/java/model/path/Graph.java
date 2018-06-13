@@ -88,7 +88,7 @@ public class Graph {
                 for (Edge e : current.adjacencies) {
                     Node child = e.target;
                     child.setHVal(computeDist(child.pos, end), agentId);
-                    int cost = e.cost + (2 * child.prio);
+                    int cost = e.cost + (2 * child.prio) + child.free;
                     int temp_g_scores = current.g_scores + cost;
                     int temp_f_scores = temp_g_scores + child.h_scores.get(agentId);
 
@@ -134,6 +134,10 @@ public class Graph {
         }
     }
 
+    static public synchronized void setFree(Position p, boolean free) {
+        nodes[p.getX()][p.getY()].setFree(free);
+    }
+
     static public synchronized void ghostUp(Position p) {
         Platform.runLater(() -> {
             nodes[p.getX()][p.getY()].ghost += 5;
@@ -175,10 +179,16 @@ public class Graph {
         int prio = 0;
         Edge[] adjacencies;
         Node parent;
+        int free;
 
         Node(Position p) {
             pos = p;
             h_scores = new HashMap<>();
+            free = 0;
+        }
+
+        public void setFree(boolean fr) {
+            free = fr ? 0 : 15;
         }
 
         void setHVal(int dist, int agentId) {

@@ -152,7 +152,7 @@ public class Board extends Observable implements Runnable {
     }
 
     private boolean checkMini(int mini) {
-        return (currentPriority < mini) || (currentPriority > (mini + 1)) && (mini != (length * height) + 2);
+        return ((currentPriority < mini) || (currentPriority > (mini + 1)) && (mini < ((length * height) + 2)));
     }
 
     public synchronized void updateCurrentPriority() {
@@ -167,8 +167,21 @@ public class Board extends Observable implements Runnable {
                     if ((a != null) && (!a.goodPosition())) {
                         if ((currentPrio < mini) && (checkMini(currentPrio))) {
                             mini = currentPrio;
-                        } else if(currentPrio < avoidError) {
+                        }
+                        if(currentPrio < avoidError) {
                             avoidError = currentPrio;
+                        }
+                    }
+                }
+            }
+
+            if(avoidError == max) {
+                for(Agent agent : agents) {
+                    if(!agent.goodPosition()) {
+                        int tmp = agent.getAgentPriority();
+                        if(tmp < avoidError) {
+                            System.out.println("AVOID : " + tmp);
+                            avoidError = tmp;
                         }
                     }
                 }
@@ -183,6 +196,16 @@ public class Board extends Observable implements Runnable {
                     currentPriority = avoidError;
                 } else if(mini != max) {
                     currentPriority = mini;
+                }
+            }
+
+            if(currentPriority == 27) {
+                if(finish()) {
+                    System.out.println("END !!!");
+                } else {
+                    for(Agent agent : agents) {
+                        System.out.println("## " + agent.getId() + " == " + agent.getTarget());
+                    }
                 }
             }
         });
@@ -347,7 +370,7 @@ public class Board extends Observable implements Runnable {
     }
 
     private void center() {
-        Position center = new Position((height / 2) + (height % 2), (length / 2) + (length % 2))
+        Position center = new Position((height / 2) + (height % 2), (length / 2) + (length % 2));
     }
 
 }

@@ -45,12 +45,13 @@ public class Agent extends Thread {
      * @param targ  Position to reach
      */
     public Agent(Position pos, Position targ) {
-        position = new Position(pos.getX(), pos.getY());
+        position = null;
         target = new Position(targ.getX(), targ.getY());
         id = _id;
         priority = id;
         _id++;
         strategy = null;
+        setPosition(new Position(pos.getX(), pos.getY()));
     }
 
     public void setAgentPriority(int prio) {
@@ -118,7 +119,13 @@ public class Agent extends Thread {
     }
 
     public void setPosition(Position pos) {
+        if(position != null) {
+            Graph.setFree(position, true);
+        }
         position = pos;
+        if(position != null) {
+            Graph.setFree(position, false);
+        }
     }
 
     /**
@@ -353,6 +360,6 @@ public class Agent extends Thread {
     }
 
     private void aleatempo() {
-        tsttempo(100 + (long)(Math.random() * 100));
+        tsttempo(20 + (long)(Math.random() * 20));
     }
 }
