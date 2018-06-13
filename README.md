@@ -1,5 +1,7 @@
 # Taquin
 
+![Exemple](https://raw.githubusercontent.com/Elomidas/Taquin/master/img/Capture.png)
+
 ## Informations
 
 ### Étudiants
@@ -78,4 +80,6 @@ Traitement spécifique pour faire rentrer un agent dans un angle.
 
 ### Notes
 
-Une part d'aléatoire a été ajoutée dans les déplacements ainsi que dans le temps écoulé entre les mouvement des agents, ainsi une situation qui a l'air de boucler peut se résoudre d'elle même au bout de plusieurs coups (cela peut être long).
+*  Une part d'aléatoire a été ajoutée dans les déplacements ainsi que dans le temps écoulé entre les mouvement des agents, ainsi une situation qui a l'air de boucler peut se résoudre d'elle même au bout de plusieurs coups (cela peut être long).
+
+*  Les agents correctement placés ont leur numéro suivi d'un **+** dans la grille afin de mieux les repérer lors de l'exécution.
