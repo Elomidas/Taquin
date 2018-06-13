@@ -138,7 +138,8 @@ public class GameController extends Controller implements Observer {
      * @param newPos
      */
     private void updateDisplay(Position oldPos, Position newPos) {
-        StackPane newStackPane = getRectangle(board.getAgent(newPos).getAgentId() + (board.checkCase(newPos) ? "+" : ""));
+        int id = board.getId(newPos);
+        StackPane newStackPane = getRectangle(((id == -1) ? "" : id) + (board.checkCase(newPos) ? "+" : ""));
         gridPane.add(this.getRectangle(""), oldPos.getY(), oldPos.getX());
         gridPane.add(newStackPane, newPos.getY(), newPos.getX());
         if(board.finish()) {

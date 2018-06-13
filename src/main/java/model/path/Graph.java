@@ -44,7 +44,7 @@ public class Graph {
 
     public static synchronized void setPrio(Position pos, int prio) {
         Platform.runLater(() -> {
-            nodes[pos.getX()][pos.getY()].setPrio(prio);
+            nodes[pos.getX()][pos.getY()].setPrio((nodes.length * nodes[0].length + 1) - prio);
         });
     }
 

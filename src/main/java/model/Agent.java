@@ -233,6 +233,14 @@ public class Agent extends Thread {
                  * TODO
                  * Check if there is a message waiting
                  */
+                //Check if there is a message
+                Message message = RetrieveRequest();
+                if(message != null) {
+                    if(message.getPosition().equals(position)) {
+                        System.out.println("FUCK");
+                    }
+                    SendResponse(message.getSender(), message.getPosition(), true);
+                }
                 SendRequest(a.getAgentId(), newPos, previous);
                 return HandleResponse(WaitResponse());
             }
@@ -259,7 +267,7 @@ public class Agent extends Thread {
         Message message = RetrieveResponse();
         while((message == null) && test) {
             if(checkPriority()) {
-                System.out.println("Waiting for response (" + getAgentId() + ")");
+                System.out.println(String.format("Ag%02d waiting for response", getAgentId()));
             }
             tempo();
             message = RetrieveResponse();
@@ -269,7 +277,7 @@ public class Agent extends Thread {
 
     private Message WaitRequest() {
         Message message = RetrieveRequest();
-        System.out.println(getAgentId() + " Wait message");
+        System.out.println(String.format("Ag%02d wait message", getAgentId()));
         while((message == null) && test && !checkPriority()) {
             tempo();
             message = RetrieveRequest();
@@ -283,10 +291,9 @@ public class Agent extends Thread {
             int prevPrio = tmpPriority;
             tmpPriority = message.getPriority();
             Queue<Position> queue = new PriorityQueue<>(
-                    20,
+                    3,
                     Comparator.comparingInt(p -> ((_board.isFree(p) ? 25 : 50) - _board.getPriority(p)))
             );
-            int localPrio = Math.min(getAgentPriority(), _board.getPriority(position));
 
             for (Position p : position.getAdjacency()) {
                 if (_board.checkPosition(p)) {
@@ -341,10 +348,11 @@ public class Agent extends Thread {
     }
 
     private void tempo() {
-        tsttempo(100);
+        //tsttempo(100);
+        aleatempo();
     }
 
     private void aleatempo() {
-        tsttempo(100 + (long)(Math.random() * priority * 20));
+        tsttempo(100 + (long)(Math.random() * 100));
     }
 }

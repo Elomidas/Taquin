@@ -152,13 +152,13 @@ public class Board extends Observable implements Runnable {
     }
 
     private boolean checkMini(int mini) {
-        return (currentPriority < mini) || (currentPriority > (mini + 1));
+        return (currentPriority < mini) || (currentPriority > (mini + 1)) && (mini != (length * height) + 2);
     }
 
     public synchronized void updateCurrentPriority() {
         Platform.runLater(() -> {
             //Recherche de la case la plus prioritaire non satisfaite
-            int mini = length * height;
+            int avoidError, max, mini = max = avoidError = (length * height) + 2;
             Set<Integer> set = priorityValue.keySet();
             for (int currentPrio : set) {
                 Position tmp = priorityValue.get(currentPrio);
@@ -167,6 +167,8 @@ public class Board extends Observable implements Runnable {
                     if ((a != null) && (!a.goodPosition())) {
                         if ((currentPrio < mini) && (checkMini(currentPrio))) {
                             mini = currentPrio;
+                        } else if(currentPrio < avoidError) {
+                            avoidError = currentPrio;
                         }
                     }
                 }
@@ -177,7 +179,11 @@ public class Board extends Observable implements Runnable {
                 System.out.println("###\n# Priority : " + currentPriority + " => " + mini + "\n###");
                 currentPriority = mini;
             } else {
-                System.out.println("NOT UPDATED");
+                if(avoidError != max) {
+                    currentPriority = avoidError;
+                } else if(mini != max) {
+                    currentPriority = mini;
+                }
             }
         });
     }
@@ -338,6 +344,10 @@ public class Board extends Observable implements Runnable {
             return corner.tl;
         }
         return corner.none;
+    }
+
+    private void center() {
+        Position center = new Position((height / 2) + (height % 2), (length / 2) + (length % 2))
     }
 
 }
