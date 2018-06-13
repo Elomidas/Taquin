@@ -246,23 +246,8 @@ public class Board extends Observable implements Runnable {
             (iMax >= iMin) && (jMax >= jMin);
             j += dj, i += di) {
             Position tmp = new Position(i, j);
-            Agent a = getGoal(tmp);
-            if(a != null) {
-                a.setAgentId(id);
-            }
-            id++;
-            int nx = (height - 1) - tmp.getX();
-            int ny = (length - 1) - tmp.getY();
-            for(Position position : new Position[] {
-                    tmp,
-                    new Position(tmp.getX(), ny),
-                    new Position(nx, tmp.getY()),
-                    new Position(nx, ny)
-            }) {
-                if (prio(position, priority)) {
-                    priority++;
-                }
-            }
+            prio(tmp, priority);
+            priority++;
             if((di == 1) && (i == iMax)) {
                 di = 0;
                 dj = -1;
@@ -283,18 +268,17 @@ public class Board extends Observable implements Runnable {
         }
     }
 
-    private boolean prio(Position p, int prio) {
-        if(priorityPos.containsKey(p)) {
-            return false;
-        }
+    private void prio(Position p, int prio) {
         Agent a = getGoal(p);
         if(a != null) {
             a.setAgentPriority(prio);
+            if(a.getAgentId() == -1) {
+                a.setAgentId(prio);
+            }
         }
         priorityValue.put(prio, p);
         priorityPos.put(p, prio);
         Graph.setPrio(p, prio);
-        return true;
     }
 
     private boolean XOR(boolean a, boolean b) {
